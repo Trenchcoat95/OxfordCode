@@ -36,6 +36,9 @@ public :
    vector<float>   *MCPStartPX;
    vector<float>   *MCPStartPY;
    vector<float>   *MCPStartPZ;
+   vector<float>   *MCPEndPX;
+   vector<float>   *MCPEndPY;
+   vector<float>   *MCPEndPZ;
    vector<float>   *TrackLenF;
    vector<float>   *TrackLenB;
    vector<float>   *TrackStartX;
@@ -70,6 +73,9 @@ public :
    TBranch        *b_MCPStartPX;   //!
    TBranch        *b_MCPStartPY;   //!
    TBranch        *b_MCPStartPZ;   //!
+   TBranch        *b_MCPEndPX;   //!
+   TBranch        *b_MCPEndPY;   //!
+   TBranch        *b_MCPEndPZ;   //!
    TBranch        *b_TrackStartX;   //!
    TBranch        *b_TrackStartY;   //!
    TBranch        *b_TrackStartZ;   //!
@@ -106,11 +112,11 @@ garana::garana(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("hemanatree2.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("hemanatreeprof.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("hemanatree2.root");
+         f = new TFile("hemanatreeprof.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("hemanatree2.root:/anatree");
+      TDirectory * dir = (TDirectory*)f->Get("hemanatreeprof.root:/anatree");
       dir->GetObject("GArAnaTree",tree);
 
    }
@@ -164,6 +170,9 @@ void garana::Init(TTree *tree)
    MCPStartPX = 0;
    MCPStartPY = 0;
    MCPStartPZ = 0;
+   MCPEndPX = 0;
+   MCPEndPY = 0;
+   MCPEndPZ = 0;
    TrackStartX = 0;
    TrackStartY = 0;
    TrackStartZ = 0;
@@ -200,6 +209,9 @@ void garana::Init(TTree *tree)
    fChain->SetBranchAddress("MCPStartPX", &MCPStartPX, &b_MCPStartPX);
    fChain->SetBranchAddress("MCPStartPY", &MCPStartPY, &b_MCPStartPY);
    fChain->SetBranchAddress("MCPStartPZ", &MCPStartPZ, &b_MCPStartPZ);
+   fChain->SetBranchAddress("MCPEndPX", &MCPEndPX, &b_MCPEndPX);
+   fChain->SetBranchAddress("MCPEndPY", &MCPEndPY, &b_MCPEndPY);
+   fChain->SetBranchAddress("MCPEndPZ", &MCPEndPZ, &b_MCPEndPZ);
    fChain->SetBranchAddress("TrackStartX", &TrackStartX, &b_TrackStartX);
    fChain->SetBranchAddress("TrackStartY", &TrackStartY, &b_TrackStartY);
    fChain->SetBranchAddress("TrackStartZ", &TrackStartZ, &b_TrackStartZ);
