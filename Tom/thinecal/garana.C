@@ -11,6 +11,7 @@
 #include <TROOT.h>
 #include <TPad.h>
 #include <TEfficiency.h>
+#include <math.h>
 
 void garana::Loop()
 {
@@ -45,6 +46,7 @@ void garana::Loop()
   TVector3 detcent(0,0,0);
   TVector3 xhat(1,0,0);
   float detR = 250;
+  float muon_mass = 0.1057;
 
   TH1F *truemuonpx = new TH1F("truemuonpx",";Muon Px (GeV);events",100,-10,10);
   TH1F *truemuonpy = new TH1F("truemuonpy",";Muon Py (GeV);events",100,-10,10);
@@ -61,13 +63,17 @@ void garana::Loop()
   TH1F *recotrackpz = new TH1F("recotrackpz",";Reco Muon Pz (GeV);events",100,0,30);
   TH1F *recotrackp  = new TH1F("recotrackp",";Reco Muon Ptot (GeV);events",100,0,30);
 
-  //TH1F *fracresid  = new TH1F("fracresid","1<P<3 GeV, Standard ECAL;(reco P - true P)/(true P);muons",100,-1,1);
-  TH1F *fracresid  = new TH1F("fracresid","3<P<5 GeV, Standard ECAL;(reco P - true P)/(true P);muons",100,-1,1);
-  //TH1F *fracresid2  = new TH1F("fracresid2","1<P<3 GeV, Standard ECAL;(true P end - true P)/(true P);muons",100,-1,1);
-  TH1F *fracresid2  = new TH1F("fracresid2","3<P<5 GeV, Standard ECAL;(true P end - true P)/(true P);muons",100,-1,1);
-  TH2F *resY  = new TH2F("resy","3<P<5 GeV, Standard ECAL;y;res",100,-200,0,100,-1,0);
-  TH2F *resY2  = new TH2F("resy2","3<P<5 GeV, Standard ECAL;y;energy loss",100,-200,0,100,-1,0);
   
+  TH1F *fracresid  = new TH1F("fracresid","3<P<5 GeV, Standard ECAL;(reco P - true P)/(true P);muons",100,-1,1); 
+  TH1F *fracresid2  = new TH1F("fracresid2","3<P<5 GeV, Standard ECAL;#Delta E (GeV);muons",100,0,2);
+  TH2F *resY  = new TH2F("resy","3<P<5 GeV, Standard ECAL;y;res",100,-200,0,100,-1,0);
+  TH2F *resY2  = new TH2F("resy2","3<P<5 GeV, Standard ECAL;y;#Delta E",100,-200,0,100,0,2);
+  /*
+  TH1F *fracresid  = new TH1F("fracresid","1<P<3 GeV, Standard ECAL;(reco P - true P)/(true P);muons",100,-1,1);
+  TH1F *fracresid2  = new TH1F("fracresid2","1<P<3 GeV, Standard ECAL;(true P end - true P)/(true P);muons",100,0,2);
+  TH2F *resY  = new TH2F("resy","1<P<3 GeV, Standard ECAL;y;res",100,-200,0,100,-1,0);
+  TH2F *resY2  = new TH2F("resy2","1<P<3 GeV, Standard ECAL;y;#Delta E",100,-200,0,100,0,2);
+  */
 
 
   Long64_t nentries = fChain->GetEntriesFast();
@@ -146,7 +152,7 @@ void garana::Loop()
     recotrackp->Fill(tpvar);
 
     float dpp = (tpvar - mpvar)/mpvar;
-    float dpp2 = (mpvarend - mpvar)/mpvar;
+    float dpp2 = - sqrt(mpvarend*mpvarend+muon_mass*muon_mass) + sqrt(mpvar*mpvar+muon_mass*muon_mass);
     fracresid->Fill(dpp);
     fracresid2->Fill(dpp2);
     resY->Fill(muony,dpp);
@@ -165,7 +171,7 @@ void garana::Loop()
   TCanvas *mccanvas2 = new TCanvas("mccanvas2","",1000,800);
   //mccanvas1->Divide(3,3);
   //mccanvas1->cd(1);
-  fracresid2->Fit("gaus");
+  fracresid2->Fit("landau");
   gStyle->SetOptFit(1);
   fracresid2->Draw("e0");
   mccanvas2->Print("fracresid2V3profhigh.png");
