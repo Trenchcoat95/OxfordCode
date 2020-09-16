@@ -65,7 +65,7 @@ void garana::Loop()
 
   
   TH1F *fracresid  = new TH1F("fracresid","3<P<5 GeV, Standard ECAL;(reco P - true P)/(true P);muons",100,-1,1); 
-  TH1F *fracresid2  = new TH1F("fracresid2","3<P<5 GeV, Standard ECAL;#Delta E (GeV);muons",100,0,2);
+  TH1F *fracresid2  = new TH1F("energyloss","40<#theta<45, Standard ECAL;#Delta E (GeV);muons",100,0,5);
   TH2F *resY  = new TH2F("resy","3<P<5 GeV, Standard ECAL;y;res",100,-200,0,100,-1,0);
   TH2F *resY2  = new TH2F("resy2","3<P<5 GeV, Standard ECAL;y;#Delta E",100,-200,0,100,0,2);
   /*
@@ -159,23 +159,23 @@ void garana::Loop()
     resY2->Fill(muony,dpp2);
 
   } // end loop over tree entries
-
+  /*
   TCanvas *mccanvas1 = new TCanvas("mccanvas1","",1000,800);
   //mccanvas1->Divide(3,3);
   //mccanvas1->cd(1);
   fracresid->Fit("gaus");
   gStyle->SetOptFit(1);
   fracresid->Draw("e0");
-  mccanvas1->Print("fracresidV3profhigh.png");
-
+  mccanvas1->Print("Energy_samples/fracresid_00.png");
+  */
   TCanvas *mccanvas2 = new TCanvas("mccanvas2","",1000,800);
   //mccanvas1->Divide(3,3);
   //mccanvas1->cd(1);
   fracresid2->Fit("landau");
   gStyle->SetOptFit(1);
   fracresid2->Draw("e0");
-  mccanvas2->Print("fracresid2V3profhigh.png");
-
+  mccanvas2->Print("Angle_samples/energyloss_40_deg.png");
+  /*
   TCanvas *mccanvas3 = new TCanvas("mccanvas3","",1000,800);
   //mccanvas1->Divide(3,3);
   //mccanvas1->cd(1);
@@ -187,7 +187,7 @@ void garana::Loop()
   gStyle->SetOptFit(0);
   resY->Draw("col");
   f1->Draw("same");
-  mccanvas3->Print("resYprofhigh.png");
+  mccanvas3->Print("Energy_samples/resY_00.png");
   
   TCanvas *mccanvas4 = new TCanvas("mccanvas4","",1000,800);
   //mccanvas1->Divide(3,3);
@@ -197,6 +197,6 @@ void garana::Loop()
   resY2->Fit(f1);
   resY2->Draw("col");
   f1->Draw("same");
-  mccanvas4->Print("resY2profhigh.png");
-
+  mccanvas4->Print("Energy_samples/resY2_00.png");
+*/
 }

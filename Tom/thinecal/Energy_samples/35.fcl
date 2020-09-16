@@ -1,0 +1,4 @@
+#include "prodtext.fcl"
+
+physics.producers.generator.InputFileName: "35.txt"
+

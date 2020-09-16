@@ -112,11 +112,11 @@ garana::garana(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("hemanatreeprof.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("Angle_samples/anatree40.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("hemanatreeprof.root");
+         f = new TFile("Angle_samples/anatree40.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("hemanatreeprof.root:/anatree");
+      TDirectory * dir = (TDirectory*)f->Get("Angle_samples/anatree40.root:/anatree");
       dir->GetObject("GArAnaTree",tree);
 
    }
