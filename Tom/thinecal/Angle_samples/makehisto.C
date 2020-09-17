@@ -29,7 +29,9 @@ void makehisto()
   TCanvas *mccanvas2 = new TCanvas("mccanvas2","",1000,800);
   //mccanvas1->Divide(3,3);
   //mccanvas1->cd(1);
-  //gStyle->SetOptFit(1);
+  gStyle->SetOptFit(1);
+  TF1 *f1 = new TF1("f1","[0]/(cos(x*3.14159265/180))",0,25);
+  histo->Fit("f1","R");
   histo->SetFillColor(590);
   histo->Draw("E2");
   histo->Draw("E1same");
