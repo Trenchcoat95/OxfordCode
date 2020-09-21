@@ -33,6 +33,9 @@ public :
    vector<float>   *MCPStartX;
    vector<float>   *MCPStartY;
    vector<float>   *MCPStartZ;
+   vector<float>   *MCPEndX;
+   vector<float>   *MCPEndY;
+   vector<float>   *MCPEndZ;
    vector<float>   *MCPStartPX;
    vector<float>   *MCPStartPY;
    vector<float>   *MCPStartPZ;
@@ -70,6 +73,9 @@ public :
    TBranch        *b_MCPStartX;   //!
    TBranch        *b_MCPStartY;   //!
    TBranch        *b_MCPStartZ;   //!
+   TBranch        *b_MCPEndX;   //!
+   TBranch        *b_MCPEndY;   //!
+   TBranch        *b_MCPEndZ;   //!
    TBranch        *b_MCPStartPX;   //!
    TBranch        *b_MCPStartPY;   //!
    TBranch        *b_MCPStartPZ;   //!
@@ -112,11 +118,11 @@ garana::garana(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("Angle_samples/anatree40.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("Energy_samples/anatree30.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("Angle_samples/anatree40.root");
+         f = new TFile("Energy_samples/anatree30.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("Angle_samples/anatree40.root:/anatree");
+      TDirectory * dir = (TDirectory*)f->Get("Energy_samples/anatree30.root:/anatree");
       dir->GetObject("GArAnaTree",tree);
 
    }
@@ -167,6 +173,9 @@ void garana::Init(TTree *tree)
    MCPStartX = 0;
    MCPStartY = 0;
    MCPStartZ = 0;
+   MCPEndX = 0;
+   MCPEndY = 0;
+   MCPEndZ = 0;
    MCPStartPX = 0;
    MCPStartPY = 0;
    MCPStartPZ = 0;
@@ -206,6 +215,9 @@ void garana::Init(TTree *tree)
    fChain->SetBranchAddress("MCPStartX", &MCPStartX, &b_MCPStartX);
    fChain->SetBranchAddress("MCPStartY", &MCPStartY, &b_MCPStartY);
    fChain->SetBranchAddress("MCPStartZ", &MCPStartZ, &b_MCPStartZ);
+   fChain->SetBranchAddress("MCPEndX", &MCPEndX, &b_MCPEndX);
+   fChain->SetBranchAddress("MCPEndY", &MCPEndY, &b_MCPEndY);
+   fChain->SetBranchAddress("MCPEndZ", &MCPEndZ, &b_MCPEndZ);
    fChain->SetBranchAddress("MCPStartPX", &MCPStartPX, &b_MCPStartPX);
    fChain->SetBranchAddress("MCPStartPY", &MCPStartPY, &b_MCPStartPY);
    fChain->SetBranchAddress("MCPStartPZ", &MCPStartPZ, &b_MCPStartPZ);
