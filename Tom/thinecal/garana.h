@@ -42,6 +42,16 @@ public :
    vector<float>   *MCPEndPX;
    vector<float>   *MCPEndPY;
    vector<float>   *MCPEndPZ;
+   vector<float>   *fTrajMCPX;
+   vector<float>   *fTrajMCPY;
+   vector<float>   *fTrajMCPZ;
+   vector<float>   *fTrajMCPT;
+   vector<float>   *fTrajMCPE;
+   vector<float>   *fTrajMCPIndex;
+   vector<float>   *fTrajTrackID;
+   vector<float>   *fTrajMCPPX;
+   vector<float>   *fTrajMCPPY;
+   vector<float>   *fTrajMCPXPZ;
    vector<float>   *TrackLenF;
    vector<float>   *TrackLenB;
    vector<float>   *TrackStartX;
@@ -82,6 +92,16 @@ public :
    TBranch        *b_MCPEndPX;   //!
    TBranch        *b_MCPEndPY;   //!
    TBranch        *b_MCPEndPZ;   //!
+   TBranch        *b_fTrajMCPX;  //!
+   TBranch        *b_fTrajMCPY;  //!
+   TBranch        *b_fTrajMCPZ;  //!
+   TBranch        *b_fTrajMCPT;  //!
+   TBranch        *b_fTrajMCPE;  //!
+   TBranch        *b_fTrajMCPIndex;  //!
+   TBranch        *b_fTrajMCPTrackID;  //!
+   TBranch        *b_fTrajMCPPX;  //!
+   TBranch        *b_fTrajMCPPY;  //!
+   TBranch        *b_fTrajMCPZ;  //!
    TBranch        *b_TrackStartX;   //!
    TBranch        *b_TrackStartY;   //!
    TBranch        *b_TrackStartZ;   //!
@@ -118,11 +138,11 @@ garana::garana(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("Energy_samples/anatree30.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("Energy_samples/biganatree10.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("Energy_samples/anatree30.root");
+         f = new TFile("Energy_samples/biganatree10.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("Energy_samples/anatree30.root:/anatree");
+      TDirectory * dir = (TDirectory*)f->Get("Energy_samples/biganatree10.root:/anatree");
       dir->GetObject("GArAnaTree",tree);
 
    }
@@ -182,6 +202,16 @@ void garana::Init(TTree *tree)
    MCPEndPX = 0;
    MCPEndPY = 0;
    MCPEndPZ = 0;
+   fTrajMCPX = 0;  
+   fTrajMCPY = 0;  
+   fTrajMCPZ = 0;  
+   fTrajMCPE = 0; 
+   fTrajMCPT = 0;  
+   fTrajMCPIndex = 0;   
+   fTrajMCPTrackID = 0;  
+   fTrajMCPPX = 0;  
+   fTrajMCPPY = 0;
+   fTrajMCPPZ = 0;    
    TrackStartX = 0;
    TrackStartY = 0;
    TrackStartZ = 0;
@@ -224,6 +254,16 @@ void garana::Init(TTree *tree)
    fChain->SetBranchAddress("MCPEndPX", &MCPEndPX, &b_MCPEndPX);
    fChain->SetBranchAddress("MCPEndPY", &MCPEndPY, &b_MCPEndPY);
    fChain->SetBranchAddress("MCPEndPZ", &MCPEndPZ, &b_MCPEndPZ);
+   fChain->SetBranchAddress("fTrajMCPX", &fTrajMCPX, &b_fTrajMCPX);
+   fChain->SetBranchAddress("fTrajMCPY", &fTrajMCPY, &b_fTrajMCPY);
+   fChain->SetBranchAddress("fTrajMCPZ", &fTrajMCPZ, &b_fTrajMCPZ);
+   fChain->SetBranchAddress("fTrajMCPE", &fTrajMCPE, &b_fTrajMCPE);
+   fChain->SetBranchAddress("fTrajMCPT", &fTrajMCPT, &b_fTrajMCPT);
+   fChain->SetBranchAddress("fTrajMCPIndex", &fTrajMCPIndex, &b_fTrajMCPIndex);
+   fChain->SetBranchAddress("fTrajMCPTrackID", &b_fTrajMCPTrackID, &b_fTrajMCPTrackID);
+   fChain->SetBranchAddress("fTrajMCPPX", &fTrajMCPPX, &b_fTrajMCPPX);
+   fChain->SetBranchAddress("fTrajMCPPY", &fTrajMCPPY, &b_fTrajMCPPY);
+   fChain->SetBranchAddress("fTrajMCPPZ", &fTrajMCPPZ, &b_fTrajMCPPZ);
    fChain->SetBranchAddress("TrackStartX", &TrackStartX, &b_TrackStartX);
    fChain->SetBranchAddress("TrackStartY", &TrackStartY, &b_TrackStartY);
    fChain->SetBranchAddress("TrackStartZ", &TrackStartZ, &b_TrackStartZ);

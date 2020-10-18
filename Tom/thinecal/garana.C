@@ -66,7 +66,7 @@ void garana::Loop()
   
   TH1F *fracresid  = new TH1F("fracresid","3<P<5 GeV, Standard ECAL;(reco P - true P)/(true P);muons",100,-1,1); 
   TH1F *fracresid2  = new TH1F("energyloss","40<#theta<45, Standard ECAL;#Delta E (GeV);muons",100,0,5);
-  TH2F *DeltaE_vs_pend  = new TH2F("DeltaE_vs_pend","0.5<P<1 GeV, Standard ECAL;#Delta E(GeV);true p end (GeV/c)",100,0,1,100,0,0.5);
+  TH2F *DeltaE_vs_pend  = new TH2F("DeltaE_vs_pend","1<P<1.5 GeV, Standard ECAL;#Delta E(GeV);true p end (GeV/c)",100,0,1,100,0,1.5);
   TH2F *resY  = new TH2F("resy","3<P<5 GeV, Standard ECAL;y;res",100,-200,0,100,-1,0);
   TH2F *resY2  = new TH2F("resy2","3<P<5 GeV, Standard ECAL;y;#Delta E",100,-200,0,100,0,2);
   TH1F *hzend  = new TH1F("hzend","hzend;zend(cm);muons",1000,19000,21000); 
@@ -209,11 +209,11 @@ void garana::Loop()
   //mccanvas1->Divide(3,3);
   //mccanvas1->cd(1);
   DeltaE_vs_pend->Draw("COLZ");
-  mccanvas2->Print("Energy_samples/energyloss_vs_pend_30.png");
+  mccanvas2->Print("Energy_samples/energyloss_vs_pend_10.png");
 
   TCanvas *mccanvas3 = new TCanvas("mccanvas3","",1000,800);
   //mccanvas1->Divide(3,3);
   //mccanvas1->cd(1);
   hzend->Draw();
-  mccanvas2->Print("Energy_samples/zend_30.png");
+  mccanvas2->Print("Energy_samples/zend_10.png");
 }
