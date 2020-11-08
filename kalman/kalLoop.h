@@ -80,7 +80,7 @@ XYh->SetTitle("XY;x(cm);y(cm);z(cm)");
 XYh->SetLineColor(kRed);
 XYh->SetMarkerStyle(3);
 XYh->Draw();
-mccanvas->Print("helix_XY.png");
+mccanvas->Print("helix_sm_XY.png");
 
 
 TCanvas *mccanvas1 = new TCanvas("mccanvas1","",1000,800);
@@ -96,7 +96,7 @@ legend->AddEntry(Yh,"TPC Cluster measured value","lep");
 legend->AddEntry(Ypred,"A priori prediction","lep");
 legend->AddEntry(Ypar,"A posteriori prediction","lep");
 legend->Draw();
-mccanvas1->Print("helix_xht_sm_Y.png");
+mccanvas1->Print("helix_sm_xht_Y.png");
 
 
 
@@ -113,7 +113,7 @@ legend2->AddEntry(Zh,"TPC Cluster measured value","lep");
 legend2->AddEntry(Zpred,"A priori prediction","lep");
 legend2->AddEntry(Zpar,"A posteriori prediction","lep");
 legend2->Draw();
-mccanvas2->Print("helix_xht_sm_Z.png");
+mccanvas2->Print("helix_sm_xht_Z.png");
 
 
 
