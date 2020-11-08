@@ -17,9 +17,9 @@
 #include "garana.h"
 
 
-void kalana()
+void kalana_mac()
 {
-    kalana kal = kalana("t1_FWD;1","perfect_helix.root");
+    kalana kal = kalana("t1_FWD;1","smeared_helix.root");
     kal.Loop();
     garana g;
 
