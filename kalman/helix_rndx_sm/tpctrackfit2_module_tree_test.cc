@@ -274,7 +274,7 @@ namespace gar {
       std::vector<std::pair<float,float>> dSigdXs_FWD;
       std::vector<TVector3> trajpts_FWD;
 
-      TFile f("/dune/data/users/battisti/thinecaltest/Energy_samples/perfect_helix.root","update");
+      TFile f("/dune/data/users/battisti/thinecaltest/Energy_samples/demo_test2.root","update");
       TTree t1_FWD("t1_FWD","Forward fitter tree");
       float xht,yht,zht,xpost;
       int ev;
@@ -486,43 +486,73 @@ namespace gar {
       //TGraphErrors *Yh = new TGraphErrors(nTPCClusters-1);
       //TGraphErrors *Zh = new TGraphErrors(nTPCClusters-1);
       //TGraphErrors *YZh = new TGraphErrors(nTPCClusters-1);
-      
-      //Create a parametrized helix as a substitute for the measurement
-      float xh = TPCClusters[TPCClusterlist[1]].Position()[0];
-      float yh = TPCClusters[TPCClusterlist[1]].Position()[1];
-      float zh = TPCClusters[TPCClusterlist[1]].Position()[2];
-      float phih = 6;
-      float curvatureh =-0.014;
-      float lambdah =-0.05;
-      float slopeh = TMath::Tan(lambdah);
-      if (slopeh != 0)
+      std::vector<float> xv;
+      std::vector<float> yv;
+      std::vector<float> zv;
+      /*
+      for (size_t iTPCCluster=1; iTPCCluster<nTPCClusters; ++iTPCCluster)
+        {      
+            double xx=0;
+            double yy=0;
+            double zz=0;  
+            int TPC=iTPCCluster;
+            if(TPC<2)
             {
-              slopeh = 1.0/slopeh;
+                for(int i=TPC;i<TPC+1;i++)   
+                {
+                    xx+=TPCClusters[TPCClusterlist[i]].Position()[0];
+                    yy+=TPCClusters[TPCClusterlist[i]].Position()[1];
+                    zz+=TPCClusters[TPCClusterlist[i]].Position()[2];
+                }
+                xv.push_back(xx/5);
+                yv.push_back(yy/5);
+                zv.push_back(zz/5);
             }
-          else
+            else
             {
-              slopeh = 1E9;
+                for(int i=TPC-1;i<TPC+1;i++)   
+                {
+                    xx+=TPCClusters[TPCClusterlist[i]].Position()[0];
+                    yy+=TPCClusters[TPCClusterlist[i]].Position()[1];
+                    zz+=TPCClusters[TPCClusterlist[i]].Position()[2];
+                }
+                xv.push_back(xx/5);
+                yv.push_back(yy/5);
+                zv.push_back(zz/5);
             }
+
+
+        }
+        */
+
+      for (size_t iTPCCluster=1; iTPCCluster<nTPCClusters; ++iTPCCluster)
+        {
+          xv.push_back(TPCClusters[TPCClusterlist[iTPCCluster]].Position()[0]); 
+        }
+      sort(xv.begin(), xv.end()); 
+      for (size_t i=0; i<xv.size(); i++)
+        {
+           for (size_t iTPCCluster=1; iTPCCluster<nTPCClusters; ++iTPCCluster)
+           {
+               if(xv.at(i)==TPCClusters[TPCClusterlist[iTPCCluster]].Position()[0])
+               {
+                   yv.push_back(TPCClusters[TPCClusterlist[iTPCCluster]].Position()[1]);
+                   zv.push_back(TPCClusters[TPCClusterlist[iTPCCluster]].Position()[2]);
+               }
+           } 
+        }
 
       for (size_t iTPCCluster=1; iTPCCluster<nTPCClusters; ++iTPCCluster)
         {
           ev=iTPCCluster;
-          if (iTPCCluster>1)
-          {
-            xh+=0.04;
-            yh+=slopeh*0.04*TMath::Sin(phih);
-            zh+=slopeh*0.04*TMath::Cos(phih);
-            phih+=slopeh*0.04*curvatureh;
-
-          }
-          
-          //std::cout<<slopeh<<" "<<slopeh*0.25*TMath::Sin(phih)<<" "<<slopeh*0.25*TMath::Cos(phih)<<" "<<slopeh*0.25*curvatureh<<std::endl;
-          //std::cout<<xh<<" "<<yh<<" "<<zh<<std::endl;
-          
+     
+          float xh = xv.at(iTPCCluster-1);
+          float yh = yv.at(iTPCCluster-1);
+          float zh = zv.at(iTPCCluster-1);
+          std::cout<<xh<<std::endl;
           xht=xh;  //add measured position to ttree
           yht=yh;
           zht=zh;
-          std::cout<<xht<<" "<<yht<<" "<<zht<<std::endl;
           //t.Fill();
           /*
           Yh->SetPoint(iTPCCluster-1,xh,yh);
@@ -571,7 +601,7 @@ namespace gar {
           // are defined is at the end of the fit, not at the place where the fit begins.
           //
           // old calc was just based on TPCCluster position in x:
-          // float dx = xh - xpos;
+          //float dx = xh - xpos;
 
 
           float dxnum = (slope/(fTPCClusterResolYZ*fTPCClusterResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1])*TMath::Cos(phi) )

@@ -31,6 +31,7 @@
 #include "TGraphErrors.h"
 #include "TFile.h"
 #include "TTree.h"
+#include "TRandom.h"
 
 // GArSoft Includes
 #include "ReconstructionDataProducts/TPCCluster.h"
@@ -108,7 +109,7 @@ namespace gar {
                      std::vector<TVector3>& trajpts,
                      TTree &t,
                      float &xht, float &yht, float &zht, int &ev,TVectorF &parvect,TVectorF &predstept,TMatrixF &Pt,TMatrixF &PPredt,TMatrixF &Rt,
-                     float &xpost);
+                     float &xpost, float &chit);
 
       int KalmanFitBothWays(std::vector<gar::rec::TPCCluster> &TPCClusters,
                             TrackPar &trackpar,  TrackIoniz &trackions, TrackTrajectory &tracktraj);
@@ -274,9 +275,10 @@ namespace gar {
       std::vector<std::pair<float,float>> dSigdXs_FWD;
       std::vector<TVector3> trajpts_FWD;
 
-      TFile f("/dune/data/users/battisti/thinecaltest/Energy_samples/demo.root","update");
+      TFile f("/dune/data/users/battisti/thinecaltest/Energy_samples/perfect_helix_randx_smearx.root","update");
       TTree t1_FWD("t1_FWD","Forward fitter tree");
       float xht,yht,zht,xpost;
+      float chit;
       int ev;
       TVectorF parvect(5);
       TVectorF predstept(5);
@@ -287,6 +289,7 @@ namespace gar {
       t1_FWD.Branch("xht",&xht,"xht/F");
       t1_FWD.Branch("yht",&yht,"yht/F");
       t1_FWD.Branch("zht",&zht,"zht/F");
+      t1_FWD.Branch("chit",&chit,"chit/F");
       t1_FWD.Branch("ev",&ev,"ev/I");
       t1_FWD.Branch("xpost",&xpost,"xpost/F");
       t1_FWD.Branch("parvect",&parvect);
@@ -295,7 +298,7 @@ namespace gar {
       t1_FWD.Branch("PPredt",&PPredt);
       t1_FWD.Branch("Rt",&Rt);
 
-      int retcode = KalmanFit(TPCClusters,hlf,tparend,chisqforwards,lengthforwards,covmatend,unused_TPCClusters,dSigdXs_FWD,trajpts_FWD,t1_FWD,xht,yht,zht,ev,parvect,predstept,Pt,PPredt,Rt,xpost);
+      int retcode = KalmanFit(TPCClusters,hlf,tparend,chisqforwards,lengthforwards,covmatend,unused_TPCClusters,dSigdXs_FWD,trajpts_FWD,t1_FWD,xht,yht,zht,ev,parvect,predstept,Pt,PPredt,Rt,xpost,chit);
       if (retcode != 0) return 1;
      
       t1_FWD.Write();
@@ -321,7 +324,7 @@ namespace gar {
       t1_BAK.Branch("PPredt",&PPredt);
       t1_BAK.Branch("Rt",&Rt);
         
-      retcode = KalmanFit(TPCClusters,hlb,tparbeg,chisqbackwards,lengthbackwards,covmatbeg,unused_TPCClusters,dSigdXs_BAK,trajpts_BAK,t1_BAK,xht,yht,zht,ev,parvect,predstept,Pt,PPredt,Rt,xpost);
+      retcode = KalmanFit(TPCClusters,hlb,tparbeg,chisqbackwards,lengthbackwards,covmatbeg,unused_TPCClusters,dSigdXs_BAK,trajpts_BAK,t1_BAK,xht,yht,zht,ev,parvect,predstept,Pt,PPredt,Rt,xpost,chit);
       if (retcode != 0) return 1;
 
       t1_BAK.Write();
@@ -373,7 +376,7 @@ namespace gar {
                                  float &xht, 
                                  float &yht, 
                                  float &zht, 
-                                 int &ev, TVectorF &parvect,TVectorF &predstept,TMatrixF &Pt,TMatrixF &PPredt,TMatrixF &Rt,float &xpost
+                                 int &ev, TVectorF &parvect,TVectorF &predstept,TMatrixF &Pt,TMatrixF &PPredt,TMatrixF &Rt,float &xpost, float&chit
                                 )
     {
 
@@ -450,6 +453,7 @@ namespace gar {
       parvec[2] = curvature_init;
       parvec[3] = phi_init;
       parvec[4] = lambda_init;
+      //std::cout << " Parvec: y " << parvec[0] << " z " << parvec[1] << " c " << parvec[2] << " phi " << parvec[3] << " lambda " << parvec[4] << std::endl;
       TVectorF predstep(5);
 
       //Filling the TTree for step zero
@@ -460,6 +464,7 @@ namespace gar {
       xht=0;
       yht=0;
       zht=0;
+      chit=0;
       ev=0;
       Rt=R;
       xpost=xpos;
@@ -487,18 +492,49 @@ namespace gar {
       //TGraphErrors *Zh = new TGraphErrors(nTPCClusters-1);
       //TGraphErrors *YZh = new TGraphErrors(nTPCClusters-1);
       
-
+      //Create a parametrized helix as a substitute for the measurement
+      TRandom *rnd = new TRandom();
+      float xh = TPCClusters[TPCClusterlist[1]].Position()[0];
+      float yh = TPCClusters[TPCClusterlist[1]].Position()[1];
+      float zh = TPCClusters[TPCClusterlist[1]].Position()[2];
+      float xhtemp = TPCClusters[TPCClusterlist[1]].Position()[0];
+      //float yhtemp = TPCClusters[TPCClusterlist[1]].Position()[1];
+      //float zhtemp = TPCClusters[TPCClusterlist[1]].Position()[2];
+      float phih = 6;
+      float curvatureh =-0.014;
+      float lambdah =-0.05;
+      float slopeh = TMath::Tan(lambdah);
+      if (slopeh != 0)
+            {
+              slopeh = 1.0/slopeh;
+            }
+          else
+            {
+              slopeh = 1E9;
+            }
+ 
       for (size_t iTPCCluster=1; iTPCCluster<nTPCClusters; ++iTPCCluster)
         {
           ev=iTPCCluster;
-     
-          float xh = TPCClusters[TPCClusterlist[iTPCCluster]].Position()[0];
-          float yh = TPCClusters[TPCClusterlist[iTPCCluster]].Position()[1];
-          float zh = TPCClusters[TPCClusterlist[iTPCCluster]].Position()[2];
+          //std::cout<<"iTPCCluster "<<iTPCCluster<<std::endl;
+          if (iTPCCluster>1)
+          {
+            float dx = 0.02+0.04*rnd->Rndm();
+            xhtemp+=dx;
+            xh=rnd->Gaus(xhtemp,0.04);
+            yh+=slopeh*dx*TMath::Sin(phih);
+            zh+=slopeh*dx*TMath::Cos(phih);
+            phih+=slopeh*dx*curvatureh;
 
+          }
+          
+          //std::cout<<slopeh<<" "<<slopeh*0.25*TMath::Sin(phih)<<" "<<slopeh*0.25*TMath::Cos(phih)<<" "<<slopeh*0.25*curvatureh<<std::endl;
+          //std::cout<<xh<<" "<<yh<<" "<<zh<<std::endl;
+          
           xht=xh;  //add measured position to ttree
           yht=yh;
           zht=zh;
+          //std::cout<<xht<<" "<<yht<<" "<<zht<<std::endl;
           //t.Fill();
           /*
           Yh->SetPoint(iTPCCluster-1,xh,yh);
@@ -548,16 +584,26 @@ namespace gar {
           //
           // old calc was just based on TPCCluster position in x:
           // float dx = xh - xpos;
+          float dx;
 
-
-          float dxnum = (slope/(fTPCClusterResolYZ*fTPCClusterResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1])*TMath::Cos(phi) )
+          
+          //dx = xh - xpos;
+          //if (dx == 0) dx = 1E-3;
+          
+          
+          //fTPCClusterResolYZ=4;
+          
+            float dxnum = (slope/(fTPCClusterResolYZ*fTPCClusterResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1])*TMath::Cos(phi) )
             + (xh - xpos)/(fTPCClusterResolX*fTPCClusterResolX);
-          float dxdenom = slope*slope/(fTPCClusterResolYZ*fTPCClusterResolYZ) + 1.0/(fTPCClusterResolX*fTPCClusterResolX);
-          float dx = dxnum/dxdenom;
-          if (dx == 0) dx = 1E-3;
+            float dxdenom = slope*slope/(fTPCClusterResolYZ*fTPCClusterResolYZ) + 1.0/(fTPCClusterResolX*fTPCClusterResolX);
+            dx = dxnum/dxdenom;
+            if (dx == 0) dx = 1E-3;
+          
+          std::cout<<fTPCClusterResolYZ<<"  "<<fTPCClusterResolX<<std::endl;
+          //std::cout<<"dyzpart "<<((dxnum-(xh - xpos)/(fTPCClusterResolX*fTPCClusterResolX))/dxdenom)<<" dxpart "<<((xh - xpos)/(fTPCClusterResolX*fTPCClusterResolX))/dxdenom<<std::endl;
           //std::cout << "dxdenom, dxnum: " << dxdenom << " " << dxnum << std::endl;
           //std::cout << "Track pos: " << xpos << " " << parvec[0] << " " << parvec[1] << " " << " TPCCluster pos: " << xh << " " << yh << " " << zh << std::endl;
-          //std::cout << "dx old and new: " << xh - xpos << " " << dx << std::endl;
+          //std::cout << "dx old and new: " << xh - xpos << " " << dx << std::endl<<std::endl;
 
 
           //TODO check this -- are these the derivatives?
@@ -599,11 +645,18 @@ namespace gar {
             }
 
           predstep = parvec;
+          //if (ev==1)
+          //{
+          //  std::cout << " Predstep: y " << predstep[0] << " z " << predstep[1] << " c " << predstep[2] << " phi " << predstep[3] << " lambda " << predstep[4] << std::endl;
+          //}
           predstep[0] += slope*dx*TMath::Sin(phi);  // update y
           predstep[1] += slope*dx*TMath::Cos(phi);  // update z
           predstep[3] += slope*dx*curvature;        // update phi
           predstept=predstep;                       // update tree values
-
+          //if (ev==1)
+          //{
+          //  std::cout << " Predstep: y " << predstep[0] << " z " << predstep[1] << " c " << predstep[2] << " phi " << predstep[3] << " lambda " << predstep[4] << std::endl;
+          //}
           if (fPrintLevel > 1)
             {
               std::cout << " Predstep: y " << predstep[0] << " z " << predstep[1] << " c " << predstep[2] << " phi " << predstep[3] << " lambda " << predstep[4] << std::endl;
@@ -654,6 +707,7 @@ namespace gar {
           }
 
           chisquared += ytilde.Norm2Sqr()/TMath::Sq(typicalResidual);
+          chit=chisquared;
           if (fPrintLevel > 0)
             {
               std::cout << "ytilde (residuals): " << std::endl;
