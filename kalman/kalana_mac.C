@@ -19,7 +19,7 @@
 
 void kalana_mac()
 {
-    kalana kal = kalana("t1_FWD;1","smeared_helix.root");
+    kalana kal = kalana("t1_FWD;1","helix_rndx_sm1_8/perfect_helix_randx1_8.root");
     kal.Loop();
     garana g;
 
@@ -29,9 +29,18 @@ void kalana_mac()
     float xpost=0;
     TVectorF *parvect=0;
     TMatrixF *Pt=0;
+    float xht=0;
+    float yht=0;
+    float zht=0;
     TBranch *b_xpost=0;
     TBranch *b_parvect=0;
     TBranch *b_Pt=0;
+    TBranch *b_xht=0;
+    TBranch *b_yht=0;
+    TBranch *b_zht=0;
+    t->SetBranchAddress("xht",&xht,&b_xht);
+    t->SetBranchAddress("yht",&yht,&b_yht);
+    t->SetBranchAddress("zht",&zht,&b_zht);
     t->SetBranchAddress("xpost",&xpost,&b_xpost);
     t->SetBranchAddress("parvect",&parvect,&b_parvect);
     t->SetBranchAddress("Pt",&Pt,&b_Pt);
@@ -77,28 +86,41 @@ void kalana_mac()
       Zpar->SetPointError(i-1,xpost,TMath::Sqrt((*Pt)[1][1]));
       double pT=0.01*0.3*B/((*parvect)[2]);
       double px=pT*tan((*parvect)[4]);
-      //std::cout<<pT<<std::endl;
       pTpar->SetPoint(i-1,xpost,abs(pT));
-      double x,y;
-      //pTpar->GetPoint(i-1,x,y);
-      //std::cout<<y<<std::endl;
+      //double x,y;
       ppar->SetPoint(i-1,xpost,sqrt(pT*pT+px*px));
+      
+      
+      /////Truth for Toy Montecarlo
+      YTrue->SetPoint(i-1,xht,yht);
+      ZTrue->SetPoint(i-1,xht,zht);
+      double pTT=0.01*0.3*B/(-0.014);
+      double pxTrue=pTT*tan(-0.05);
+      pTTrue->SetPoint(i-1,xht,abs(pTT));
+      pTrue->SetPoint(i-1,xht,sqrt(pTT*pTT+pxTrue*pxTrue));
+      
+      
     }
+
+    /*
+    ///Truth for proper Montecarlo
     //t->GetLeaf("xpost")->GetValue()
     gt->GetEntry(0);
     //std::cout<<TrajMCPX->size()<<std::endl;
+    
     for (Int_t i=1; i<TrajMCPX->size(); i++) 
     {
         if(TrajMCPIndex->at(i)==0)
         {
+
             YTrue->SetPoint(i-1,TrajMCPX->at(i),TrajMCPY->at(i));
             ZTrue->SetPoint(i-1,TrajMCPX->at(i),TrajMCPZ->at(i));
             pTTrue->SetPoint(i-1,TrajMCPX->at(i),sqrt(TrajMCPPZ->at(i)*TrajMCPPZ->at(i)+TrajMCPPY->at(i)*TrajMCPPY->at(i)));
             pTrue->SetPoint(i-1,TrajMCPX->at(i),sqrt(TrajMCPPZ->at(i)*TrajMCPPZ->at(i)+TrajMCPPX->at(i)*TrajMCPPX->at(i)+TrajMCPPY->at(i)*TrajMCPPY->at(i)));
         }
     }
-   
-    /*
+    */
+    
     TCanvas *mccanvaspT = new TCanvas("mccanvaspT","",1000,800);
     pTpar->SetTitle("pT;x(cm);p(GeV/c)");
     pTpar->SetLineColor(kGreen);
@@ -110,7 +132,7 @@ void kalana_mac()
     legendpT->AddEntry(pTpar,"Kalman Fitter best estimate","lep");
     legendpT->AddEntry(pTTrue,"Montecarlo Truth","lep");
     legendpT->Draw();
-    mccanvaspT->Print("helix_pTTrue.png");
+    mccanvaspT->Print("helix_pTTrue_rndx1_8.png");
     
     TCanvas *mccanvasp = new TCanvas("mccanvasp","",1000,800);
     ppar->SetTitle("p;x(cm);p(GeV/c)");
@@ -123,7 +145,7 @@ void kalana_mac()
     legendp->AddEntry(ppar,"Kalman Fitter best estimate","lep");
     legendp->AddEntry(pTrue,"Montecarlo Truth","lep");
     legendp->Draw();
-    mccanvasp->Print("helix_pTrue.png");
+    mccanvasp->Print("helix_pTrue_rndx1_8.png");
     
     TCanvas *mccanvasy = new TCanvas("mccanvasy","",1000,800);
     YTrue->SetTitle("Y;x(cm);y(cm)");
@@ -136,7 +158,7 @@ void kalana_mac()
     legendy->AddEntry(Ypar,"Kalman Fitter best estimate","lep");
     legendy->AddEntry(YTrue,"Montecarlo Truth","lep");
     legendy->Draw();
-    mccanvasy->Print("helix_YTrue.png");
+    mccanvasy->Print("helix_YTrue_rndx1_8.png");
 
     TCanvas *mccanvasz = new TCanvas("mccanvasz","",1000,800);
     ZTrue->SetTitle("Z;x(cm);z(cm)");
@@ -149,7 +171,7 @@ void kalana_mac()
     legendz->AddEntry(Zpar,"Kalman Fitter best estimate","lep");
     legendz->AddEntry(ZTrue,"Montecarlo Truth","lep");
     legendz->Draw();
-    mccanvasz->Print("helix_ZTrue.png");
-    */
+    mccanvasz->Print("helix_ZTrue_rndx1_8.png");
+    
 }
 

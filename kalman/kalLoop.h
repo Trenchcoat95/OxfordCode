@@ -46,16 +46,16 @@ for (Int_t i=1; i<nentries; i++) {
 
       Yh->SetPoint(i-1,xht,yht);
       Yh->SetPointError(i-1,0,TMath::Sqrt((*Rt)[0][0]));
-      Ypred->SetPoint(i-1,xht,(*predstept)[0]);
+      Ypred->SetPoint(i-1,xpost,(*predstept)[0]);
       Ypred->SetPointError(i-1,0,TMath::Sqrt((*PPredt)[0][0]));
-      Ypar->SetPoint(i-1,xht,(*parvect)[0]);
+      Ypar->SetPoint(i-1,xpost,(*parvect)[0]);
       Ypar->SetPointError(i-1,0,TMath::Sqrt((*Pt)[0][0]));
 
       Zh->SetPoint(i-1,xht,zht);
       Zh->SetPointError(i-1,0,TMath::Sqrt((*Rt)[1][1]));
-      Zpred->SetPoint(i-1,xht,(*predstept)[1]);
+      Zpred->SetPoint(i-1,xpost,(*predstept)[1]);
       Zpred->SetPointError(i-1,0,TMath::Sqrt((*PPredt)[1][1]));
-      Zpar->SetPoint(i-1,xht,(*parvect)[1]);
+      Zpar->SetPoint(i-1,xpost,(*parvect)[1]);
       Zpar->SetPointError(i-1,0,TMath::Sqrt((*Pt)[1][1]));
 
       Curvpred->SetPoint(i-1,xpost,(*predstept)[2]);
@@ -80,7 +80,7 @@ XYh->SetTitle("XY;x(cm);y(cm);z(cm)");
 XYh->SetLineColor(kRed);
 XYh->SetMarkerStyle(3);
 XYh->Draw();
-mccanvas->Print("helix_sm_XY.png");
+mccanvas->Print("helix_XY_rndx1_8.png");
 
 
 TCanvas *mccanvas1 = new TCanvas("mccanvas1","",1000,800);
@@ -96,7 +96,7 @@ legend->AddEntry(Yh,"TPC Cluster measured value","lep");
 legend->AddEntry(Ypred,"A priori prediction","lep");
 legend->AddEntry(Ypar,"A posteriori prediction","lep");
 legend->Draw();
-mccanvas1->Print("helix_sm_xht_Y.png");
+mccanvas1->Print("helix_Y_rndx1_8.png");
 
 
 
@@ -113,7 +113,7 @@ legend2->AddEntry(Zh,"TPC Cluster measured value","lep");
 legend2->AddEntry(Zpred,"A priori prediction","lep");
 legend2->AddEntry(Zpar,"A posteriori prediction","lep");
 legend2->Draw();
-mccanvas2->Print("helix_sm_xht_Z.png");
+mccanvas2->Print("helix_Z_rndx1_8.png");
 
 
 
@@ -127,7 +127,7 @@ auto legend3 = new TLegend(0.55,0.75,0.9,0.9);
 legend3->AddEntry(Curvpred,"A priori prediction","lep");
 legend3->AddEntry(Curvpar,"A posteriori prediction","lep");
 legend3->Draw();
-mccanvas3->Print("helix_sm_Curv.png");
+mccanvas3->Print("helix_Curv_rndx1_8.png");
 
 TCanvas *mccanvas4 = new TCanvas("mccanvas4","",1000,800);
 Phipred->SetTitle("Phi;x(cm);#phi");
@@ -139,7 +139,7 @@ auto legend4 = new TLegend(0.55,0.75,0.9,0.9);
 legend4->AddEntry(Phipred,"A priori prediction","lep");
 legend4->AddEntry(Phipar,"A posteriori prediction","lep");
 legend4->Draw();
-mccanvas4->Print("helix_sm_Phi.png");
+mccanvas4->Print("helix_Phi_rndx1_8.png");
 
 
 TCanvas *mccanvas5 = new TCanvas("mccanvas5","",1000,800);
@@ -152,5 +152,5 @@ auto legend5 = new TLegend(0.55,0.75,0.9,0.9);
 legend5->AddEntry(Lambdapred,"A priori prediction","lep");
 legend5->AddEntry(Lambdapar,"A posteriori prediction","lep");
 legend5->Draw();
-mccanvas5->Print("helix_sm_Lambda.png");
+mccanvas5->Print("helix_Lambda_rndx1_8.png");
 }
