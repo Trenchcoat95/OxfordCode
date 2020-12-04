@@ -274,7 +274,7 @@ namespace gar {
       std::vector<std::pair<float,float>> dSigdXs_FWD;
       std::vector<TVector3> trajpts_FWD;
 
-      TFile f("/dune/data/users/battisti/thinecaltest/Energy_samples/perfect_helix.root","update");
+      TFile f("/dune/data/users/battisti/thinecaltest/Energy_samples/perfect_helix1000.root","update");
       TTree t1_FWD("t1_FWD","Forward fitter tree");
       float xht,yht,zht,xpost;
       int ev;
@@ -581,7 +581,7 @@ namespace gar {
           //if (dx == 0) dx = 1E-3;
           
           
-          fTPCClusterResolYZ=4;
+          fTPCClusterResolYZ=1000;
           
             float dxnum = (slope/(fTPCClusterResolYZ*fTPCClusterResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1])*TMath::Cos(phi) )
             + (xh - xpos)/(fTPCClusterResolX*fTPCClusterResolX);
