@@ -19,7 +19,7 @@
 
 void kalana_mac()
 {
-    kalana kal = kalana("t1_FWD;1","helix_rndx_sm1_8/perfect_helix_randx1_8.root");
+    kalana kal = kalana("t1_FWD;1","helix/perfect_helix_measx.root");
     kal.Loop();
     garana g;
 
@@ -132,7 +132,7 @@ void kalana_mac()
     legendpT->AddEntry(pTpar,"Kalman Fitter best estimate","lep");
     legendpT->AddEntry(pTTrue,"Montecarlo Truth","lep");
     legendpT->Draw();
-    mccanvaspT->Print("helix_pTTrue_rndx1_8.png");
+    mccanvaspT->Print("helix_pTTrue_measx.png");
     
     TCanvas *mccanvasp = new TCanvas("mccanvasp","",1000,800);
     ppar->SetTitle("p;x(cm);p(GeV/c)");
@@ -145,7 +145,7 @@ void kalana_mac()
     legendp->AddEntry(ppar,"Kalman Fitter best estimate","lep");
     legendp->AddEntry(pTrue,"Montecarlo Truth","lep");
     legendp->Draw();
-    mccanvasp->Print("helix_pTrue_rndx1_8.png");
+    mccanvasp->Print("helix_pTrue_measx.png");
     
     TCanvas *mccanvasy = new TCanvas("mccanvasy","",1000,800);
     YTrue->SetTitle("Y;x(cm);y(cm)");
@@ -158,7 +158,7 @@ void kalana_mac()
     legendy->AddEntry(Ypar,"Kalman Fitter best estimate","lep");
     legendy->AddEntry(YTrue,"Montecarlo Truth","lep");
     legendy->Draw();
-    mccanvasy->Print("helix_YTrue_rndx1_8.png");
+    mccanvasy->Print("helix_YTrue_measx.png");
 
     TCanvas *mccanvasz = new TCanvas("mccanvasz","",1000,800);
     ZTrue->SetTitle("Z;x(cm);z(cm)");
@@ -171,7 +171,7 @@ void kalana_mac()
     legendz->AddEntry(Zpar,"Kalman Fitter best estimate","lep");
     legendz->AddEntry(ZTrue,"Montecarlo Truth","lep");
     legendz->Draw();
-    mccanvasz->Print("helix_ZTrue_rndx1_8.png");
+    mccanvasz->Print("helix_ZTrue_measx.png");
     
 }
 

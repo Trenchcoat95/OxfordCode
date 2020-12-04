@@ -80,7 +80,7 @@ XYh->SetTitle("XY;x(cm);y(cm);z(cm)");
 XYh->SetLineColor(kRed);
 XYh->SetMarkerStyle(3);
 XYh->Draw();
-mccanvas->Print("helix_XY_rndx1_8.png");
+mccanvas->Print("helix_XY_measx.png");
 
 
 TCanvas *mccanvas1 = new TCanvas("mccanvas1","",1000,800);
@@ -91,12 +91,12 @@ Ypred->SetLineColor(kBlue);
 Ypred->Draw("same");
 Ypar->SetLineColor(kGreen);
 Ypar->Draw("same");
-auto legend = new TLegend(0.1,0.75,0.45,0.9);
+auto legend = new TLegend(0.55,0.75,0.9,0.9);
 legend->AddEntry(Yh,"TPC Cluster measured value","lep");
 legend->AddEntry(Ypred,"A priori prediction","lep");
 legend->AddEntry(Ypar,"A posteriori prediction","lep");
 legend->Draw();
-mccanvas1->Print("helix_Y_rndx1_8.png");
+mccanvas1->Print("helix_Y_measx.png");
 
 
 
@@ -108,12 +108,12 @@ Zpred->SetLineColor(kBlue);
 Zpred->Draw("same");
 Zpar->SetLineColor(kGreen);
 Zpar->Draw("same");
-auto legend2 = new TLegend(0.55,0.75,0.9,0.9);
+auto legend2 = new TLegend(0.325,0.75,0.675,0.9);
 legend2->AddEntry(Zh,"TPC Cluster measured value","lep");
 legend2->AddEntry(Zpred,"A priori prediction","lep");
 legend2->AddEntry(Zpar,"A posteriori prediction","lep");
 legend2->Draw();
-mccanvas2->Print("helix_Z_rndx1_8.png");
+mccanvas2->Print("helix_Z_measx.png");
 
 
 
@@ -127,7 +127,7 @@ auto legend3 = new TLegend(0.55,0.75,0.9,0.9);
 legend3->AddEntry(Curvpred,"A priori prediction","lep");
 legend3->AddEntry(Curvpar,"A posteriori prediction","lep");
 legend3->Draw();
-mccanvas3->Print("helix_Curv_rndx1_8.png");
+mccanvas3->Print("helix_Curv_measx.png");
 
 TCanvas *mccanvas4 = new TCanvas("mccanvas4","",1000,800);
 Phipred->SetTitle("Phi;x(cm);#phi");
@@ -139,7 +139,7 @@ auto legend4 = new TLegend(0.55,0.75,0.9,0.9);
 legend4->AddEntry(Phipred,"A priori prediction","lep");
 legend4->AddEntry(Phipar,"A posteriori prediction","lep");
 legend4->Draw();
-mccanvas4->Print("helix_Phi_rndx1_8.png");
+mccanvas4->Print("helix_Phi_measx.png");
 
 
 TCanvas *mccanvas5 = new TCanvas("mccanvas5","",1000,800);
@@ -152,5 +152,5 @@ auto legend5 = new TLegend(0.55,0.75,0.9,0.9);
 legend5->AddEntry(Lambdapred,"A priori prediction","lep");
 legend5->AddEntry(Lambdapar,"A posteriori prediction","lep");
 legend5->Draw();
-mccanvas5->Print("helix_Lambda_rndx1_8.png");
+mccanvas5->Print("helix_Lambda_measx.png");
 }
