@@ -410,7 +410,7 @@ namespace gar {
           return 1;
         }
 
-      std::cout<<"curvature_init: "<<curvature_init<<" phi_init: "<<phi_init<<" lambda_init: "<<lambda_init<<" xpos_init: "<<xpos_init<<" ypos_init: "<<ypos_init<<" zpos_init: "<<zpos_init<<std::endl
+      std::cout<<"curvature_init: "<<curvature_init<<" phi_init: "<<phi_init<<" lambda_init: "<<lambda_init<<" xpos_init: "<<xpos_init<<" ypos_init: "<<ypos_init<<" zpos_init: "<<zpos_init<<std::endl;
       std::cout<<"nTPCClusters: "<<nTPCClusters<<std::endl;
 
       // Kalman fitter variables
