@@ -19,7 +19,7 @@
 
 void kalana_mac()
 {
-    kalana kal = kalana("t1_FWD;1","helix/perfect_helix_measx.root");
+    kalana kal = kalana("t1_FWD;1","helix/rootmacro_perfect_helix.root");
     kal.Loop();
     garana g;
 

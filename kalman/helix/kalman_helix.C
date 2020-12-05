@@ -49,16 +49,16 @@
     {
 
       
-      size_t n = 100;
+      size_t n = 452;
       float fPrintLevel=0;
       
       // estimate curvature, lambda, phi, xpos from the initial track parameters
-      float curvature_init=0.1;         ///need to check what this is
-      float phi_init = 0;
-      float lambda_init = 0;
-      float xpos_init=0;
-      float ypos_init=0;
-      float zpos_init=0;
+      float curvature_init= 0.00133671;         ///need to check what this is
+      float phi_init = 2.41558;
+      float lambda_init = 0.0373353;
+      float xpos_init= -23.0761;
+      float ypos_init=-340.074;
+      float zpos_init=1638.21;
       
       
 
@@ -80,9 +80,9 @@
       //need to check this
       TMatrixF Q(5,5);
       Q.Zero();
-      Q[2][2] = 2;     // allow for some curvature uncertainty between points
-      Q[3][3] = 2;      // phi
-      Q[4][4] = 2;   // lambda
+      Q[2][2] = 1e-09;     // allow for some curvature uncertainty between points
+      Q[3][3] = 1e-09;      // phi
+      Q[4][4] = 0.0001;   // lambda
 
       // Noise covariance on the measured points.
       // 16 cm2 initially, might reasonably be lowered to typicalResidual near line 552-67
@@ -140,9 +140,9 @@
 
       
       //Create a parametrized helix as a substitute for the measurement
-      float xh = 0;  ///need to check what this is
-      float yh = 0;
-      float zh = 0;
+      float xh = -23.3112;  ///need to check what this is
+      float yh = -337.045;
+      float zh = 1634.73;
       float phih = 6;
       float curvatureh =-0.014;
       float lambdah =-0.05;
@@ -371,7 +371,7 @@
 
       
 
-      TFile f("rootmacro_perfect_helix.root","update");
+      TFile f("rootmacro_perfect_helix.root","recreate");
       TTree t1_FWD("t1_FWD","Forward fitter tree");
       float xht,yht,zht,xpost;
       int ev;
