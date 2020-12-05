@@ -38,18 +38,22 @@
                    float &xht, 
                    float &yht, 
                    float &zht, 
-                   int &ev, 
                    TVectorF &parvect,
                    TVectorF &predstept,
                    TMatrixF &Pt,
                    TMatrixF &PPredt,
                    TMatrixF &Rt,
-                   float &xpost
+                   float &xpost,
+                   size_t n, 
+                   TTree &t1s,
+                   float &x,
+                   float &y,
+                   float &z
                                 )
     {
 
       
-      size_t n = 452;
+      
       float fPrintLevel=0;
       
       // estimate curvature, lambda, phi, xpos from the initial track parameters
@@ -114,7 +118,6 @@
       xht=0;
       yht=0;
       zht=0;
-      ev=0;
       Rt=R;
       xpost=xpos;
       t.Fill();
@@ -127,7 +130,7 @@
       H[1][1] = 1;  // z
       TMatrixF HT(5,2);
 
-      TVectorF z(2);
+      TVectorF zv(2);
       TVectorF ytilde(2);
       TVectorF hx(2);
       TMatrixF S(2,2);
@@ -140,32 +143,19 @@
 
       
       //Create a parametrized helix as a substitute for the measurement
-      float xh = -23.3112;  ///need to check what this is
-      float yh = -337.045;
-      float zh = 1634.73;
-      float phih = 6;
-      float curvatureh =-0.014;
-      float lambdah =-0.05;
-      float slopeh = TMath::Tan(lambdah);
-      if (slopeh != 0)
-            {
-              slopeh = 1.0/slopeh;
-            }
-          else
-            {
-              slopeh = 1E9;
-            }
-      
+      t1s.GetEntry(0);
+      float xh = x; // -23.3112;  ///need to check what this is
+      float yh = y; // -337.045;
+      float zh = z; // v1634.73;
       for (size_t iTPCCluster=1; iTPCCluster<n; ++iTPCCluster)
         {
-          ev=iTPCCluster;
           //std::cout<<"iTPCCluster "<<iTPCCluster<<std::endl;
           if (iTPCCluster>1)
           {
-            xh+=0.04;
-            yh+=slopeh*0.04*TMath::Sin(phih);
-            zh+=slopeh*0.04*TMath::Cos(phih);
-            phih+=slopeh*0.04*curvatureh;
+            t1s.GetEntry(iTPCCluster-1);
+            xh=x; 
+            yh=y;
+            zh=z;
 
           }
           
@@ -368,13 +358,51 @@
       // 4: lambda = angle from the cathode plane
       // 5: x   /// added on to the end
 
+      ///Prepare a simple tree with just the coordinates
+      size_t n = 452;
+
+      TFile fs("perfect_helix_simple.root","recreate");
+      TTree t1s("t1s","helix simple tree");
+      float x,y,z;
+      t1s.Branch("x",&x,"x/F");
+      t1s.Branch("y",&y,"y/F");
+      t1s.Branch("z",&z,"z/F");
+      x = -23.3112;  
+      y = -337.045;
+      z = 1634.73;
+      float phi = 6;
+      float curvature =-0.014;
+      float lambda =-0.05;
+      float slope = TMath::Tan(lambda);
+      if (slope != 0)
+            {
+              slope = 1.0/slope;
+            }
+          else
+            {
+              slope = 1E9;
+            }
+      for (size_t iTPCCluster=1; iTPCCluster<n; ++iTPCCluster)
+        {
+          if (iTPCCluster>1)
+          {
+            x+=0.04;
+            y+=slope*0.04*TMath::Sin(phi);
+            z+=slope*0.04*TMath::Cos(phi);
+            phi+=slope*0.04*curvature;
+          }
+          t1s.Fill();
+
+        }
+      t1s.Write();
 
       
 
-      TFile f("rootmacro_perfect_helix.root","recreate");
+      
+
+      TFile f("test_rootmacro_perfect_helix.root","recreate");
       TTree t1_FWD("t1_FWD","Forward fitter tree");
       float xht,yht,zht,xpost;
-      int ev;
       TVectorF parvect(5);
       TVectorF predstept(5);
       TMatrixF Pt(5,5);
@@ -384,7 +412,6 @@
       t1_FWD.Branch("xht",&xht,"xht/F");
       t1_FWD.Branch("yht",&yht,"yht/F");
       t1_FWD.Branch("zht",&zht,"zht/F");
-      t1_FWD.Branch("ev",&ev,"ev/I");
       t1_FWD.Branch("xpost",&xpost,"xpost/F");
       t1_FWD.Branch("parvect",&parvect);
       t1_FWD.Branch("predstept",&predstept);
@@ -392,7 +419,7 @@
       t1_FWD.Branch("PPredt",&PPredt);
       t1_FWD.Branch("Rt",&Rt);
 
-      KalmanFit(t1_FWD,xht,yht,zht,ev,parvect,predstept,Pt,PPredt,Rt,xpost);
+      KalmanFit(t1_FWD,xht,yht,zht,parvect,predstept,Pt,PPredt,Rt,xpost,n,t1s,x,y,z);
       
      
       t1_FWD.Write();
