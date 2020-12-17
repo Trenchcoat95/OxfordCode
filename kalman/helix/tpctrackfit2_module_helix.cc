@@ -434,7 +434,7 @@ namespace gar {
       Q[3][3] = fKalPhiStepUncSq;      // phi
       Q[4][4] = fKalLambdaStepUncSq;   // lambda
 
-      std::cout<<"Q "<<fKalCurvStepUncSq<<" "<<fKalPhiStepUncSq<<" "<<fKalLambdaStepUncSq<<std::endl;
+      //std::cout<<"Q "<<fKalCurvStepUncSq<<" "<<fKalPhiStepUncSq<<" "<<fKalLambdaStepUncSq<<std::endl;
 
       // Noise covariance on the measured points.
       // 16 cm2 initially, might reasonably be lowered to typicalResidual near line 552-67
@@ -494,6 +494,8 @@ namespace gar {
       //TGraphErrors *YZh = new TGraphErrors(nTPCClusters-1);
       
       //Create a parametrized helix as a substitute for the measurement
+      //int precision = std::numeric_limits<double>::max_digits10;
+      //std::cout << std::setprecision(precision);
       float xh = TPCClusters[TPCClusterlist[1]].Position()[0];
       float yh = TPCClusters[TPCClusterlist[1]].Position()[1];
       float zh = TPCClusters[TPCClusterlist[1]].Position()[2];
@@ -516,6 +518,8 @@ namespace gar {
         {
           ev=iTPCCluster;
           //std::cout<<"iTPCCluster "<<iTPCCluster<<std::endl;
+          //std::cout << "xh,yh,zh: "<< xh <<" "<<yh<<" "<<zh<<std::endl;
+          //std::cout << " Parvec: y " << parvec[0] << " z " << parvec[1] << " c " << parvec[2] << " phi " << parvec[3] << " lambda " << parvec[4] << std::endl;
           if (iTPCCluster>1)
           {
             xh+=0.04;
@@ -524,7 +528,8 @@ namespace gar {
             phih+=slopeh*0.04*curvatureh;
 
           }
-          
+          std::cout << "xh,yh,zh: "<< xh <<" "<<yh<<" "<<zh<<std::endl;
+          std::cout << " Parvec: y " << parvec[0] << " z " << parvec[1] << " c " << parvec[2] << " phi " << parvec[3] << " lambda " << parvec[4] << std::endl;
           //std::cout<<slopeh<<" "<<slopeh*0.25*TMath::Sin(phih)<<" "<<slopeh*0.25*TMath::Cos(phih)<<" "<<slopeh*0.25*curvatureh<<std::endl;
           //std::cout<<xh<<" "<<yh<<" "<<zh<<std::endl;
           
@@ -588,7 +593,7 @@ namespace gar {
           //if (dx == 0) dx = 1E-3;
           
           
-          fTPCClusterResolYZ=4;
+          //fTPCClusterResolYZ=4;
           
             float dxnum = (slope/(fTPCClusterResolYZ*fTPCClusterResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1])*TMath::Cos(phi) )
             + (xh - xpos)/(fTPCClusterResolX*fTPCClusterResolX);
@@ -596,6 +601,22 @@ namespace gar {
             dx = dxnum/dxdenom;
             if (dx == 0) dx = 1E-3;
           
+          /*
+          std::cout<<"dxnum "<<dxnum<<std::endl;
+          std::cout<<"dxdenom "<<dxdenom<<std::endl;
+          std::cout<<"dx "<<dx<<std::endl;
+          
+          std::cout<<slope<<" "<<fTPCClusterResolYZ<<" "<<yh<<" "<<parvec[0]<<" "<<TMath::Sin(phi)<<" "<<zh<<" "<<parvec[1]<<" "<<TMath::Cos(phi)<<" "<<xh<<" "<<xpos<<" "<<fTPCClusterResolX<<" "<<phi<<std::endl;
+          
+          int precision = std::numeric_limits<double>::max_digits10;
+          std::cout << std::setprecision(precision) << parvec[0] << std::endl;
+          std::cout << std::setprecision(precision) << parvec[1] << std::endl;
+          std::cout << std::setprecision(precision) << parvec[2] << std::endl;
+          std::cout << std::setprecision(precision) << parvec[3] << std::endl;
+          std::cout << std::setprecision(precision) << parvec[4] << std::endl;
+          std::cout << std::setprecision(precision) << xpos << std::endl;
+          std::cout << "STOP" << std::endl;
+          */
           //std::cout<<"dyzpart "<<((dxnum-(xh - xpos)/(fTPCClusterResolX*fTPCClusterResolX))/dxdenom)<<" dxpart "<<((xh - xpos)/(fTPCClusterResolX*fTPCClusterResolX))/dxdenom<<std::endl;
           //std::cout << "dxdenom, dxnum: " << dxdenom << " " << dxnum << std::endl;
           //std::cout << "Track pos: " << xpos << " " << parvec[0] << " " << parvec[1] << " " << " TPCCluster pos: " << xh << " " << yh << " " << zh << std::endl;
