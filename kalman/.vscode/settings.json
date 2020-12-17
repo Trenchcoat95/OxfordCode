@@ -4,6 +4,8 @@
         "kalana_old.C": "cpp",
         "kalana_old2.C": "cpp",
         "kalman_helix.C": "cpp",
-        "kalman_helix_test.C": "cpp"
+        "kalman_helix_test.C": "cpp",
+        "kalman_helic_algs.C": "cpp",
+        "kalman_helix_algs.C": "cpp"
     }
 }
