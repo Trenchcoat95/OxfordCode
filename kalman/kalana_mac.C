@@ -19,7 +19,7 @@
 
 void kalana_mac()
 {
-    kalana kal = kalana("t1_FWD;1","helix/rootmacro_perfect_helix.root");
+    kalana kal = kalana("t1_FWD;1","m_perfect_helix_rndx_smz3_R_3_03_stdK.root");
     kal.Loop();
     garana g;
 
@@ -128,11 +128,11 @@ void kalana_mac()
     pTTrue->SetLineColor(kRed);
     pTTrue->SetMarkerColor(kRed);
     pTTrue->Draw("same");
-    auto legendpT = new TLegend(0.1,0.75,0.45,0.9);
+    auto legendpT = new TLegend(0.55,0.75,0.9,0.9);
     legendpT->AddEntry(pTpar,"Kalman Fitter best estimate","lep");
     legendpT->AddEntry(pTTrue,"Montecarlo Truth","lep");
     legendpT->Draw();
-    mccanvaspT->Print("helix_pTTrue_measx.png");
+    mccanvaspT->Print("helix_rndx_sm/sm_z/helix_pTTrue_rndx_smz3_R_3_03_stdK.png");
     
     TCanvas *mccanvasp = new TCanvas("mccanvasp","",1000,800);
     ppar->SetTitle("p;x(cm);p(GeV/c)");
@@ -141,11 +141,11 @@ void kalana_mac()
     pTrue->SetLineColor(kRed);
     pTrue->SetMarkerColor(kRed);
     pTrue->Draw("same");
-    auto legendp = new TLegend(0.1,0.75,0.45,0.9);
+    auto legendp = new TLegend(0.55,0.75,0.9,0.9);
     legendp->AddEntry(ppar,"Kalman Fitter best estimate","lep");
     legendp->AddEntry(pTrue,"Montecarlo Truth","lep");
     legendp->Draw();
-    mccanvasp->Print("helix_pTrue_measx.png");
+    mccanvasp->Print("helix_rndx_sm/sm_z/helix_pTrue_rndx_smz3_R_3_03_stdK.png");
     
     TCanvas *mccanvasy = new TCanvas("mccanvasy","",1000,800);
     YTrue->SetTitle("Y;x(cm);y(cm)");
@@ -154,11 +154,11 @@ void kalana_mac()
     YTrue->Draw();
     Ypar->SetLineColor(kGreen);
     Ypar->Draw("same");
-    auto legendy = new TLegend(0.1,0.75,0.45,0.9);
+    auto legendy = new TLegend(0.55,0.75,0.9,0.9);
     legendy->AddEntry(Ypar,"Kalman Fitter best estimate","lep");
     legendy->AddEntry(YTrue,"Montecarlo Truth","lep");
     legendy->Draw();
-    mccanvasy->Print("helix_YTrue_measx.png");
+    mccanvasy->Print("helix_rndx_sm/sm_z/helix_YTrue_rndx_smz3_R_3_03_stdK.png");
 
     TCanvas *mccanvasz = new TCanvas("mccanvasz","",1000,800);
     ZTrue->SetTitle("Z;x(cm);z(cm)");
@@ -167,11 +167,11 @@ void kalana_mac()
     ZTrue->Draw();
     Zpar->SetLineColor(kGreen);
     Zpar->Draw("same");
-    auto legendz = new TLegend(0.55,0.75,0.9,0.9);
+    auto legendz = new TLegend(0.325,0.75,0.675,0.9);
     legendz->AddEntry(Zpar,"Kalman Fitter best estimate","lep");
     legendz->AddEntry(ZTrue,"Montecarlo Truth","lep");
     legendz->Draw();
-    mccanvasz->Print("helix_ZTrue_measx.png");
+    mccanvasz->Print("helix_rndx_sm/sm_z/helix_ZTrue_rndx_smz3_R_3_03_stdK.png");
     
 }
 
