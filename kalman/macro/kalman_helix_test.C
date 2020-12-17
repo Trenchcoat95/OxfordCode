@@ -18,9 +18,7 @@
 #include "TGraphErrors.h"
 #include "TFile.h"
 #include "TTree.h"
-
-
-
+#include "kalman_helix_algs.h"
 
 
 //--------------------------------------------------------------------------------------------------------------
@@ -33,6 +31,7 @@
     // 2: curvature
     // 3: phi
     // 4: lambda
+    
 
     void KalmanFit( TTree &t, 
                    float &xht, 
@@ -57,14 +56,25 @@
       float fPrintLevel=0;
       
       // estimate curvature, lambda, phi, xpos from the initial track parameters
+      /*
       float curvature_init= 0.001336709363386035;         ///need to check what this is
       float phi_init = 2.415579080581665;
       float lambda_init = 0.037335269153118134;
       float xpos_init= -23.076112747192383;
       float ypos_init=-340.07403564453125;
       float zpos_init=1638.2122802734375;
+      */
+
+      float curvature_init=0.1;
+      float phi_init = 0;
+      float lambda_init = 0;
+      float xpos_init=0;
+      float ypos_init=0;
+      float zpos_init=0;
+
+      initial_trackpar_estimate(t1s,x,y,z,n,curvature_init,phi_init,lambda_init,xpos_init,ypos_init,zpos_init,fPrintLevel);
       
-      
+      std::cout<<"Initial estimate: "<<curvature_init<<" "<<phi_init<<" "<<lambda_init<<" "<<xpos_init<<" "<<ypos_init<<" "<<zpos_init<<std::endl;
 
       // Kalman fitter variables
 
@@ -92,8 +102,8 @@
       // 16 cm2 initially, might reasonably be lowered to typicalResidual near line 552-67
       TMatrixF R(2,2);
       R.Zero();
-      R[0][0] = TMath::Sq(3);  // in cm^2 usually 4
-      R[1][1] = TMath::Sq(0.3); //TMath::Sq(0);  // in cm^2 usually 4
+      R[0][0] = TMath::Sq(0.3);  // in cm^2 usually 4
+      R[1][1] = TMath::Sq(3); //TMath::Sq(0);  // in cm^2 usually 4
       Rt=R;
       // add the TPCClusters and update the track parameters and uncertainties.  Put in additional terms to keep uncertainties from shrinking when
       // scattering and energy loss can change the track parameters along the way.
@@ -358,7 +368,7 @@
       
     }
     
-    void kalman_helix()
+    void kalman_helix_test()
 
     {
       // variables:  x is the independent variable
@@ -399,6 +409,9 @@
             {
               slope = 1E9;
             }
+      int precision = std::numeric_limits<double>::max_digits10;
+      std::cout << std::setprecision(precision);
+      std::cout<<"Initial values: "<<curvature<<" "<<phi<<" "<<lambda<<" "<<x<<" "<<y<<" "<<z<<std::endl;
       for (size_t iTPCCluster=1; iTPCCluster<n; ++iTPCCluster)
         {
           if (iTPCCluster>1)
@@ -423,7 +436,7 @@
 
       
 
-      TFile f("m_perfect_helix_rndx_smz3_R_3_03_stdK.root","recreate");
+      TFile f("m_perfect_helix_rndx_smz3_R_03_3_stdK.root","recreate");
       TTree t1_FWD("t1_FWD","Forward fitter tree");
       float xht,yht,zht,xpost;
       TVectorF parvect(5);
