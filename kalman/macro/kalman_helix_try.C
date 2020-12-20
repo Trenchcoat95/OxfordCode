@@ -18,6 +18,7 @@
 #include "TGraphErrors.h"
 #include "TFile.h"
 #include "TTree.h"
+#include "kalman_helix_algs.h"
 
 
 
@@ -57,14 +58,23 @@
       float fPrintLevel=0;
       
       // estimate curvature, lambda, phi, xpos from the initial track parameters
-      float curvature_init= 0.001336709363386035;         ///need to check what this is
-      float phi_init = 2.415579080581665;
-      float lambda_init = 0.037335269153118134;
-      float xpos_init= -23.076112747192383;
-      float ypos_init=-340.07403564453125;
-      float zpos_init=1638.2122802734375;
+      //float curvature_init= 0.001336709363386035;         ///need to check what this is
+      //float phi_init = 2.415579080581665;
+      //float lambda_init = 0.037335269153118134;
+      //float xpos_init= -23.076112747192383;
+      //float ypos_init=-340.07403564453125;
+      //float zpos_init=1638.2122802734375;
+
+      float curvature_init=0.1;
+      float phi_init = 0;
+      float lambda_init = 0;
+      float xpos_init=0;
+      float ypos_init=0;
+      float zpos_init=0;
       
+      initial_trackpar_estimate(t1s,x,y,z,n,curvature_init,phi_init,lambda_init,xpos_init,ypos_init,zpos_init,fPrintLevel);
       
+      std::cout<<"Initial estimate: "<<curvature_init<<" "<<phi_init<<" "<<lambda_init<<" "<<xpos_init<<" "<<ypos_init<<" "<<zpos_init<<std::endl;
 
       // Kalman fitter variables
 
@@ -115,9 +125,9 @@
       PPredt.Zero();
       parvect=parvec;
       predstept.Zero();
-      xht=0;
-      yht=0;
-      zht=0;
+      xht=xpos_init;
+      yht=ypos_init;
+      zht=zpos_init;
       Rt=R;
       xpost=xpos;
       t.Fill();
@@ -143,7 +153,7 @@
 
       
       //Create a parametrized helix as a substitute for the measurement
-      t1s.GetEntry(0);
+      t1s.GetEntry(1);
       float xh = x; // -23.3112;  ///need to check what this is
       float yh = y; // -337.045;
       float zh = z; // v1634.73;
@@ -155,7 +165,7 @@
           
           if (iTPCCluster>1)
           {
-            t1s.GetEntry(iTPCCluster-1);
+            t1s.GetEntry(iTPCCluster);
             xh=x; 
             yh=y;
             zh=z;
@@ -358,7 +368,7 @@
       
     }
     
-    void kalman_helix()
+    void kalman_helix_try()
 
     {
       // variables:  x is the independent variable
@@ -374,13 +384,21 @@
 
       //Right now with perfect helix
 
-      TFile fs("m_perfect_helix_simple_rndx.root","recreate");
+      TFile fs("try_m_perfect_helix_simple_rndx.root","recreate");
       TTree t1s("t1s","helix simple tree");
       float x,y,z;
       t1s.Branch("x",&x,"x/F");
       t1s.Branch("y",&y,"y/F");
       t1s.Branch("z",&z,"z/F");
+      //TPCCluster 0
+      x= -23.076112747192383;
+      y= -340.07403564453125;
+      z=  1638.2122802734375;
+      t1s.Fill();
+
       TRandom *rnd = new TRandom();
+
+      //TPCCluster 1
       x = -23.311233520507812;  
       //float xtemp=x;
       y = -337.04501342773438;
@@ -391,6 +409,9 @@
       float curvature =-0.014;
       float lambda =-0.05;
       float slope = TMath::Tan(lambda);
+
+      
+
       if (slope != 0)
             {
               slope = 1.0/slope;
@@ -423,7 +444,7 @@
 
       
 
-      TFile f("m_perfect_helix_rndx.root","recreate");
+      TFile f("try_m_perfect_helix_rndx.root","recreate");
       TTree t1_FWD("t1_FWD","Forward fitter tree");
       float xht,yht,zht,xpost;
       TVectorF parvect(5);
