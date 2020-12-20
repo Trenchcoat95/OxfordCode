@@ -102,7 +102,7 @@
       // 16 cm2 initially, might reasonably be lowered to typicalResidual near line 552-67
       TMatrixF R(2,2);
       R.Zero();
-      R[0][0] = TMath::Sq(0.3);  // in cm^2 usually 4
+      R[0][0] = TMath::Sq(0.001);  // in cm^2 usually 4
       R[1][1] = TMath::Sq(3); //TMath::Sq(0);  // in cm^2 usually 4
       Rt=R;
       // add the TPCClusters and update the track parameters and uncertainties.  Put in additional terms to keep uncertainties from shrinking when
@@ -153,19 +153,20 @@
 
       
       //Create a parametrized helix as a substitute for the measurement
-      t1s.GetEntry(0);
+      int i=0;
+      t1s.GetEntry(i);
       float xh = x; // -23.3112;  ///need to check what this is
       float yh = y; // -337.045;
       float zh = z; // v1634.73;
       float fTPCClusterResolYZ=1;
       float fTPCClusterResolX=0.5;
-
+      //int i=0;
       for (size_t iTPCCluster=1; iTPCCluster<n; ++iTPCCluster)
         {
-          
-          if (iTPCCluster>1)
+          i+=1;
+          if (true)
           {
-            t1s.GetEntry(iTPCCluster-1);
+            t1s.GetEntry(i);
             xh=x; 
             yh=y;
             zh=z;
@@ -436,7 +437,7 @@
 
       
 
-      TFile f("m_perfect_helix_rndx_smz3_R_03_3_stdK.root","recreate");
+      TFile f("m_perfect_helix_rndx_smz3_R_0001_3_stdK.root","recreate");
       TTree t1_FWD("t1_FWD","Forward fitter tree");
       float xht,yht,zht,xpost;
       TVectorF parvect(5);
@@ -462,6 +463,14 @@
 
       
     }
+
+    
+
+    
+
+    
+
+  
 
     
 

@@ -18,9 +18,7 @@
 #include "TGraphErrors.h"
 #include "TFile.h"
 #include "TTree.h"
-
-
-
+#include "kalman_helix_algs.h"
 
 
 //--------------------------------------------------------------------------------------------------------------
@@ -33,6 +31,7 @@
     // 2: curvature
     // 3: phi
     // 4: lambda
+    
 
     void KalmanFit( TTree &t, 
                    float &xht, 
@@ -57,14 +56,25 @@
       float fPrintLevel=0;
       
       // estimate curvature, lambda, phi, xpos from the initial track parameters
+      /*
       float curvature_init= 0.001336709363386035;         ///need to check what this is
       float phi_init = 2.415579080581665;
       float lambda_init = 0.037335269153118134;
       float xpos_init= -23.076112747192383;
       float ypos_init=-340.07403564453125;
       float zpos_init=1638.2122802734375;
+      */
+
+      float curvature_init=0.1;
+      float phi_init = 0;
+      float lambda_init = 0;
+      float xpos_init=0;
+      float ypos_init=0;
+      float zpos_init=0;
+
+      initial_trackpar_estimate(t1s,x,y,z,n,curvature_init,phi_init,lambda_init,xpos_init,ypos_init,zpos_init,fPrintLevel);
       
-      
+      std::cout<<"Initial estimate: "<<curvature_init<<" "<<phi_init<<" "<<lambda_init<<" "<<xpos_init<<" "<<ypos_init<<" "<<zpos_init<<std::endl;
 
       // Kalman fitter variables
 
@@ -92,8 +102,8 @@
       // 16 cm2 initially, might reasonably be lowered to typicalResidual near line 552-67
       TMatrixF R(2,2);
       R.Zero();
-      R[0][0] = TMath::Sq(4);  // in cm^2 usually 4
-      R[1][1] = TMath::Sq(4); //TMath::Sq(0);  // in cm^2 usually 4
+      R[0][0] = TMath::Sq(0.3);  // in cm^2 usually 4
+      R[1][1] = TMath::Sq(3); //TMath::Sq(0);  // in cm^2 usually 4
       Rt=R;
       // add the TPCClusters and update the track parameters and uncertainties.  Put in additional terms to keep uncertainties from shrinking when
       // scattering and energy loss can change the track parameters along the way.
@@ -214,12 +224,12 @@
           float dx;
 
           
-          //dx = xh - xpos;
-          //if (dx == 0) dx = 1E-3;
+          dx = xh - xpos;
+          if (dx == 0) dx = 1E-3;
           
           
             
-          
+          /*
             float dxnum = (slope/(fTPCClusterResolYZ*fTPCClusterResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1])*TMath::Cos(phi) )
             + (xh - xpos)/(fTPCClusterResolX*fTPCClusterResolX);
             float dxdenom = slope*slope/(fTPCClusterResolYZ*fTPCClusterResolYZ) + 1.0/(fTPCClusterResolX*fTPCClusterResolX);
@@ -236,7 +246,7 @@
           //std::cout << "dxdenom, dxnum: " << dxdenom << " " << dxnum << std::endl;
           //std::cout << "Track pos: " << xpos << " " << parvec[0] << " " << parvec[1] << " " << " TPCCluster pos: " << xh << " " << yh << " " << zh << std::endl;
           //std::cout << "dx old and new: " << xh - xpos << " " << dx << std::endl<<std::endl;
-          
+          */
 
           //TODO check this -- are these the derivatives?
           // y = yold + dx*slope*TMath::Sin(phi)
@@ -358,7 +368,7 @@
       
     }
     
-    void kalman_helix()
+    void kalman_helix_test()
 
     {
       // variables:  x is the independent variable
@@ -374,12 +384,39 @@
 
       //Right now with perfect helix
 
-      TFile fs("m_perfect_helix_simple_rndx.root","recreate");
+      //TFile fs("m_perfect_helix_simple_rndx_smz3_stdK.root","recreate");
+      TFile* fmuon=new TFile("../muon/demo.root");
+      TTree* tmuon=(TTree*)fmuon->Get("t1_FWD;1");
+      float xht=0;
+      float yht=0;
+      float zht=0;
+      TBranch* b_xht;
+      TBranch* b_yht;
+      TBranch* b_zht;
+      tmuon->SetBranchAddress("xht",&xht,&b_xht);
+      tmuon->SetBranchAddress("yht",&yht,&b_yht);
+      tmuon->SetBranchAddress("zht",&zht,&b_zht);
+      
+      
+      TFile fs("m_muon_simple_stdK.root","recreate");
       TTree t1s("t1s","helix simple tree");
       float x,y,z;
       t1s.Branch("x",&x,"x/F");
       t1s.Branch("y",&y,"y/F");
       t1s.Branch("z",&z,"z/F");
+      
+      for (size_t iTPCCluster=1; iTPCCluster<n; ++iTPCCluster)
+      {
+          tmuon->GetEntry(iTPCCluster);
+          std::cout<<"TPCCluster "<<xht<<" "<<yht<<" "<<zht<<" "<<iTPCCluster<<std::endl;
+          x=xht;
+          y=yht;
+          z=zht;
+          t1s.Fill();
+      }
+      t1s.Write();
+
+      /*
       TRandom *rnd = new TRandom();
       x = -23.311233520507812;  
       //float xtemp=x;
@@ -399,6 +436,9 @@
             {
               slope = 1E9;
             }
+      int precision = std::numeric_limits<double>::max_digits10;
+      std::cout << std::setprecision(precision);
+      std::cout<<"Initial values: "<<curvature<<" "<<phi<<" "<<lambda<<" "<<x<<" "<<y<<" "<<z<<std::endl;
       for (size_t iTPCCluster=1; iTPCCluster<n; ++iTPCCluster)
         {
           if (iTPCCluster>1)
@@ -409,8 +449,8 @@
             //x=rnd->Gaus(xtemp,0.04);   //Smeared x
             y+=slope*dx*TMath::Sin(phi);
             //y=rnd->Gaus(ytemp,3);
-            z+=slope*dx*TMath::Cos(phi);
-            //z=rnd->Gaus(ztemp,3);    //Smeared z
+            ztemp+=slope*dx*TMath::Cos(phi);
+            z=rnd->Gaus(ztemp,3);    //Smeared z
 
             phi+=slope*dx*curvature;
           }
@@ -418,14 +458,19 @@
 
         }
       t1s.Write();
-
+      */
       
 
       
 
-      TFile f("m_perfect_helix_rndx.root","recreate");
+      //TFile f("m_perfect_helix_rndx_smz3_R_03_3_stdK.root","recreate");
+      TFile f("m_muon_R_03_3_stdK.root","recreate");
       TTree t1_FWD("t1_FWD","Forward fitter tree");
-      float xht,yht,zht,xpost;
+      //float xht,yht,zht,xpost;
+      xht=0;
+      yht=0;
+      zht=0;
+      float xpost;
       TVectorF parvect(5);
       TVectorF predstept(5);
       TMatrixF Pt(5,5);
@@ -446,7 +491,7 @@
       
      
       t1_FWD.Write();
-
+      
       
     }
 
