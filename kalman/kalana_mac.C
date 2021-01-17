@@ -19,9 +19,13 @@
 
 void kalana_mac()
 {
-    kalana kal = kalana("t1_FWD;1","macro/try_m_perfect_helix_rndx.root");
-    kal.Loop();
-    garana g;
+    std::string folder= "helix_rndx_sm/sm_xyz/";
+    std::string  sm= "x02y3z3";
+    std::string  R= "4_4";
+    std::string  filename = "m_perfect_helix_rndx_sm"+sm+"_R_"+R+"_stdK.root";
+    kalana kal = kalana("t1_FWD;1",filename.c_str());
+    kal.Loop(folder,sm,R);
+    //garana g;
 
     const double B = 0.4;
     
@@ -45,6 +49,7 @@ void kalana_mac()
     t->SetBranchAddress("parvect",&parvect,&b_parvect);
     t->SetBranchAddress("Pt",&Pt,&b_Pt);
 
+    /*
     TTree* gt=g.fChain;
     vector<float>   *TrajMCPX=0;
     vector<float>   *TrajMCPY=0;
@@ -67,7 +72,8 @@ void kalana_mac()
     gt->SetBranchAddress("TrajMCPPY", &TrajMCPPY, &b_TrajMCPPY);
     gt->SetBranchAddress("TrajMCPPZ", &TrajMCPPZ, &b_TrajMCPPZ);
     gt->SetBranchAddress("TrajMCPIndex", &TrajMCPIndex, &b_TrajMCPIndex);
-    
+    */ 
+
     Int_t nentries = (Int_t)t->GetEntries();
     TGraphErrors *Ypar =new  TGraphErrors(nentries-1);
     TGraphErrors *Zpar =new  TGraphErrors(nentries-1);
@@ -132,7 +138,8 @@ void kalana_mac()
     legendpT->AddEntry(pTpar,"Kalman Fitter best estimate","lep");
     legendpT->AddEntry(pTTrue,"Montecarlo Truth","lep");
     legendpT->Draw();
-    //mccanvaspT->Print("helix_rndx_sm/sm_y/helix_pTTrue_rndx_smy3_R_3_3_stdK.png");
+    std::string st = folder + "helix_pTTrue_rndx_sm" + sm + "_R_" + R + "_stdK.png";
+    mccanvaspT->Print(st.c_str());
     
     TCanvas *mccanvasp = new TCanvas("mccanvasp","",1000,800);
     ppar->SetTitle("p;x(cm);p(GeV/c)");
@@ -145,7 +152,8 @@ void kalana_mac()
     legendp->AddEntry(ppar,"Kalman Fitter best estimate","lep");
     legendp->AddEntry(pTrue,"Montecarlo Truth","lep");
     legendp->Draw();
-    //mccanvasp->Print("helix_rndx_sm/sm_y/helix_pTrue_rndx_smy3_R_3_3_stdK.png");
+    st = folder + "helix_pTrue_rndx_sm" + sm + "_R_" + R + "_stdK.png";
+    mccanvasp->Print(st.c_str());
     
     TCanvas *mccanvasy = new TCanvas("mccanvasy","",1000,800);
     YTrue->SetTitle("Y;x(cm);y(cm)");
@@ -158,7 +166,8 @@ void kalana_mac()
     legendy->AddEntry(Ypar,"Kalman Fitter best estimate","lep");
     legendy->AddEntry(YTrue,"Montecarlo Truth","lep");
     legendy->Draw();
-    //mccanvasy->Print("helix_rndx_sm/sm_y/helix_YTrue_rndx_smy3_R_3_3_stdK.png");
+    st = folder + "helix_YTrue_rndx_sm" + sm + "_R_" + R + "_stdK.png";
+    mccanvasy->Print(st.c_str());
 
     TCanvas *mccanvasz = new TCanvas("mccanvasz","",1000,800);
     ZTrue->SetTitle("Z;x(cm);z(cm)");
@@ -171,7 +180,8 @@ void kalana_mac()
     legendz->AddEntry(Zpar,"Kalman Fitter best estimate","lep");
     legendz->AddEntry(ZTrue,"Montecarlo Truth","lep");
     legendz->Draw();
-    //mccanvasz->Print("helix_rndx_sm/sm_y/helix_ZTrue_rndx_smy3_R_3_3_stdK.png");
+    st = folder + "helix_ZTrue_rndx_sm" + sm + "_R_" + R + "_stdK.png";
+    mccanvasz->Print(st.c_str());
     
 }
 

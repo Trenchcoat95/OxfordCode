@@ -102,8 +102,8 @@
       // 16 cm2 initially, might reasonably be lowered to typicalResidual near line 552-67
       TMatrixF R(2,2);
       R.Zero();
-      R[0][0] = TMath::Sq(4);  // in cm^2 usually 4
-      R[1][1] = TMath::Sq(4); //TMath::Sq(0);  // in cm^2 usually 4
+      R[0][0] = TMath::Sq(3);  // in cm^2 usually 4
+      R[1][1] = TMath::Sq(3); //TMath::Sq(0);  // in cm^2 usually 4
       Rt=R;
       // add the TPCClusters and update the track parameters and uncertainties.  Put in additional terms to keep uncertainties from shrinking when
       // scattering and energy loss can change the track parameters along the way.
@@ -153,24 +153,20 @@
 
       
       //Create a parametrized helix as a substitute for the measurement
-      t1s.GetEntry(1);
-      float xh = x; // -23.3112;  ///need to check what this is
-      float yh = y; // -337.045;
-      float zh = z; // v1634.73;
+      //t1s.GetEntry(1);
+      float xh = 0; // -23.3112;  ///need to check what this is
+      float yh = 0; // -337.045;
+      float zh = 0; // v1634.73;
       float fTPCClusterResolYZ=1;
       float fTPCClusterResolX=0.5;
 
       for (size_t iTPCCluster=1; iTPCCluster<n; ++iTPCCluster)
         {
           
-          if (iTPCCluster>1)
-          {
-            t1s.GetEntry(iTPCCluster);
-            xh=x; 
-            yh=y;
-            zh=z;
-
-          }
+          t1s.GetEntry(iTPCCluster);
+          xh=x; 
+          yh=y;
+          zh=z;
           
           //std::cout<<"iTPCCluster "<<iTPCCluster<<std::endl;
           //std::cout << "xh,yh,zh: "<< xh <<" "<<yh<<" "<<zh<<std::endl;
@@ -224,12 +220,12 @@
           float dx;
 
           
-          //dx = xh - xpos;
-          //if (dx == 0) dx = 1E-3;
+          dx = xh - xpos;
+          if (dx == 0) dx = 1E-3;
           
           
             
-          
+          /*
             float dxnum = (slope/(fTPCClusterResolYZ*fTPCClusterResolYZ))*( (yh - parvec[0])*TMath::Sin(phi) + (zh - parvec[1])*TMath::Cos(phi) )
             + (xh - xpos)/(fTPCClusterResolX*fTPCClusterResolX);
             float dxdenom = slope*slope/(fTPCClusterResolYZ*fTPCClusterResolYZ) + 1.0/(fTPCClusterResolX*fTPCClusterResolX);
@@ -242,6 +238,7 @@
             std::cout<<"dxdenom "<<dxdenom<<std::endl;
             std::cout<<"dx "<<dx<<std::endl;
             std::cout<<slope<<" "<<fTPCClusterResolYZ<<" "<<yh<<" "<<parvec[0]<<" "<<TMath::Sin(phi)<<" "<<zh<<" "<<parvec[1]<<" "<<TMath::Cos(phi)<<" "<<xh<<" "<<xpos<<" "<<fTPCClusterResolX<<" "<<phi<<std::endl;
+          */
           //std::cout<<"dyzpart "<<((dxnum-(xh - xpos)/(fTPCClusterResolX*fTPCClusterResolX))/dxdenom)<<" dxpart "<<((xh - xpos)/(fTPCClusterResolX*fTPCClusterResolX))/dxdenom<<std::endl;
           //std::cout << "dxdenom, dxnum: " << dxdenom << " " << dxnum << std::endl;
           //std::cout << "Track pos: " << xpos << " " << parvec[0] << " " << parvec[1] << " " << " TPCCluster pos: " << xh << " " << yh << " " << zh << std::endl;
@@ -384,7 +381,7 @@
 
       //Right now with perfect helix
 
-      TFile fs("try_m_perfect_helix_simple_rndx.root","recreate");
+      TFile fs("try_m_perfect_helix_simple_rndx_smy3.root","recreate");
       TTree t1s("t1s","helix simple tree");
       float x,y,z;
       t1s.Branch("x",&x,"x/F");
@@ -428,8 +425,8 @@
             //float dx=0.04;
             x+=dx;
             //x=rnd->Gaus(xtemp,0.04);   //Smeared x
-            y+=slope*dx*TMath::Sin(phi);
-            //y=rnd->Gaus(ytemp,3);
+            ytemp+=slope*dx*TMath::Sin(phi);
+            y=rnd->Gaus(ytemp,3);
             z+=slope*dx*TMath::Cos(phi);
             //z=rnd->Gaus(ztemp,3);    //Smeared z
 
@@ -444,7 +441,7 @@
 
       
 
-      TFile f("try_m_perfect_helix_rndx.root","recreate");
+      TFile f("try_m_perfect_helix_rndx_smy3_R_3_3_stdK.root","recreate");
       TTree t1_FWD("t1_FWD","Forward fitter tree");
       float xht,yht,zht,xpost;
       TVectorF parvect(5);
