@@ -17,7 +17,7 @@
 void l2g_traj()
 {
     TChain chain("/anatree/GArAnaTree");
-    chain.Add("/pnfs/dune/persistent/users/ebrianne/ProductionSamples/ND-LAr/nd_hall_dayone_lar_SPY_v2_wMuID/Anatree/neutrino/neutrino.nd_hall_dayone_lar_SPY_v2_wMuID.volArgonCubeActive.Ev973000.Ev973999.2037.anatree.root");
+    chain.Add("/pnfs/dune/persistent/users/ebrianne/ProductionSamples/ND-LAr/nd_hall_dayone_lar_SPY_v2_wMuID/Anatree/neutrino/*");
 
     //neutrino.nd_hall_dayone_lar_SPY_v2_wMuID.volArgonCubeActive.Ev973000.Ev973999.2037.anatree.root
 
@@ -67,7 +67,7 @@ void l2g_traj()
     
 
     TH2F* hxyLArEnd = new TH2F("hxyLArEnd", "XY LArEnd", 100, -1000, 1000, 100, -1000, 1000);
-    TH2F* hxyGArStart = new TH2F("hxyGArStart", "XY GArStart", 100, -500, 500, 100, -1000, 1000);
+    TH2F* hxyGArStart = new TH2F("hxyGArStart", "XY GArStart", 100, -1000, 1000, 100, -1000, 1000);
     
     
     
@@ -96,13 +96,13 @@ void l2g_traj()
         {
             if (TrajMCPTrackID->at(k)==ID)
             {
-                if(TrajMCPZ->at(k)<1200 && TrajMCPZ->at(k)>800  && no1==0)
+                if(TrajMCPZ->at(k)<950 && TrajMCPZ->at(k)>850  && no1==0)
                 {
                    hxyLArEnd->Fill(TrajMCPX->at(k),TrajMCPY->at(k));
                    no1++;
                 }
 
-                if(TrajMCPZ->at(k)<1170 && TrajMCPZ->at(k)>1160  && no2==0)
+                if(TrajMCPZ->at(k)<1200 && TrajMCPZ->at(k)>1100  && no2==0)
                 {
                    hxyGArStart->Fill(TrajMCPX->at(k),TrajMCPY->at(k));
                    no2++;
@@ -114,10 +114,11 @@ void l2g_traj()
     }
 
     
-    TH2F *hxyLArGArRatio = (TH2F*) hxyLArEnd->Clone("hxyLArGArRatio");
-    //hxyLArGArRatio->Divide(hxyLArEnd);
+    TH2F *hxyLArGArRatio = (TH2F*) hxyGArStart->Clone("hxyLArGArRatio");
+    hxyLArGArRatio->Divide(hxyLArEnd);
 
     TCanvas *mccanvasRatio = new TCanvas("mccanvasRatio","",1000,800);
+    gStyle->SetOptStat(0);
     hxyLArGArRatio->SetTitle("Muon ratio GAr entrance/LAr exit;x[cm];y[cm]");
     hxyLArGArRatio->Draw("COLZ");
     mccanvasRatio->Print("14_LArGArRatio.png");

@@ -380,7 +380,7 @@
 
       //Right now with perfect helix
 
-      TFile fs("m_perfect_helix_simple_rndx_smx02y3z3.root","recreate");
+      TFile fs("m_perfect_helix_simple_rndx_smx01z3.root","recreate");
       TTree t1s("t1s","helix simple tree");
       float x,y,z;
       t1s.Branch("x",&x,"x/F");
@@ -421,15 +421,15 @@
             float dx=0.02+0.04*rnd->Rndm(); //Randomized x
             //float dx=0.04;
             xtemp+=dx;
-            x=rnd->Gaus(xtemp,0.2);   //Smeared x
-            ytemp+=slope*dx*TMath::Sin(phi);
+            x=rnd->Gaus(xtemp,0.1);   //Smeared x
+            y+=slope*dx*TMath::Sin(phi);
             //y=rnd->Gaus(ytemp,3);
             ztemp+=slope*dx*TMath::Cos(phi);
-            //z=rnd->Gaus(ztemp,3);    //Smeared z 
-            f2->GetRandom2(yd,zd);
+            z=rnd->Gaus(ztemp,3);    //Smeared z 
+            //f2->GetRandom2(yd,zd);
             //x=xd+xtemp;
-            y=yd+ytemp;
-            z=zd+ztemp;
+            //y=yd+ytemp;
+            //z=zd+ztemp;
             phi+=slope*dx*curvature;
           }
           t1s.Fill();
@@ -439,11 +439,11 @@
 
       
 
-      float Ry = TMath::Sq(4);//TMath::Sq(2);//TMath::Sq(0.01);//TMath::Sq(3);
-      float Rz = TMath::Sq(4);//TMath::Sq(0.01);//TMath::Sq(0.01); //1.1921e-07
+      float Ry = TMath::Sq(3);//TMath::Sq(2);//TMath::Sq(0.01);//TMath::Sq(3);
+      float Rz = TMath::Sq(2);//TMath::Sq(0.01);//TMath::Sq(0.01); //1.1921e-07
       float Ryz = TMath::Sq(0);
 
-      TFile f("m_perfect_helix_rndx_smx02y3z3_R_4_4_stdK.root","recreate");
+      TFile f("m_perfect_helix_rndx_smx01z3_R_3_2_stdK.root","recreate");
       TTree t1_FWD("t1_FWD","Forward fitter tree");
       float xht,yht,zht,xpost;
       TVectorF parvect(5);
