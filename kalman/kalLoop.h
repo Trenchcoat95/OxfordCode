@@ -13,7 +13,7 @@
 #include <TVectorF.h>
 #include <TMatrix.h>
 
-void kalana::Loop()
+void kalana::Loop(std::string folder,std::string  sm,std::string  R)
 {
 Int_t nentries = (Int_t)t->GetEntries();
 
@@ -45,14 +45,14 @@ for (Int_t i=1; i<nentries; i++) {
       //std::cout<<xht<<" "<<yht<<" "<<zht<<std::endl;
 
       Yh->SetPoint(i-1,xht,yht);
-      Yh->SetPointError(i-1,0,TMath::Sqrt((*Rt)[0][0]));
+      //Yh->SetPointError(i-1,0,TMath::Sqrt((*Rt)[0][0]));
       Ypred->SetPoint(i-1,xpost,(*predstept)[0]);
       Ypred->SetPointError(i-1,0,TMath::Sqrt((*PPredt)[0][0]));
       Ypar->SetPoint(i-1,xpost,(*parvect)[0]);
       Ypar->SetPointError(i-1,0,TMath::Sqrt((*Pt)[0][0]));
 
       Zh->SetPoint(i-1,xht,zht);
-      Zh->SetPointError(i-1,0,TMath::Sqrt((*Rt)[1][1]));
+      //Zh->SetPointError(i-1,0,TMath::Sqrt((*Rt)[1][1]));
       Zpred->SetPoint(i-1,xpost,(*predstept)[1]);
       Zpred->SetPointError(i-1,0,TMath::Sqrt((*PPredt)[1][1]));
       Zpar->SetPoint(i-1,xpost,(*parvect)[1]);
@@ -80,7 +80,8 @@ XYh->SetTitle("XY;x(cm);y(cm);z(cm)");
 XYh->SetLineColor(kRed);
 XYh->SetMarkerStyle(3);
 XYh->Draw();
-//mccanvas->Print("helix_rndx_sm/sm_y/helix_XY_rndx_smy3_R_3_3_stdK.png");
+std::string st = folder + "helix_XY_rndx_sm" + sm + "_R_" + R + "_stdK.png";
+mccanvas->Print(st.c_str());
 
 
 TCanvas *mccanvas1 = new TCanvas("mccanvas1","",1000,800);
@@ -96,7 +97,8 @@ legend->AddEntry(Yh,"TPC Cluster measured value","lep");
 legend->AddEntry(Ypred,"A priori prediction","lep");
 legend->AddEntry(Ypar,"A posteriori prediction","lep");
 legend->Draw();
-//mccanvas1->Print("helix_rndx_sm/sm_y/helix_Y_rndx_smy3_R_3_3_stdK.png");
+st = folder + "helix_Y_rndx_sm" + sm + "_R_" + R + "_stdK.png";
+mccanvas1->Print(st.c_str());
 
 
 
@@ -113,7 +115,8 @@ legend2->AddEntry(Zh,"TPC Cluster measured value","lep");
 legend2->AddEntry(Zpred,"A priori prediction","lep");
 legend2->AddEntry(Zpar,"A posteriori prediction","lep");
 legend2->Draw();
-//mccanvas2->Print("helix_rndx_sm/sm_y/helix_Z_rndx_smy3_R_3_3_stdK.png");
+st = folder + "helix_Z_rndx_sm" + sm + "_R_" + R + "_stdK.png";
+mccanvas2->Print(st.c_str());
 
 
 
@@ -127,7 +130,8 @@ auto legend3 = new TLegend(0.55,0.75,0.9,0.9);
 legend3->AddEntry(Curvpred,"A priori prediction","lep");
 legend3->AddEntry(Curvpar,"A posteriori prediction","lep");
 legend3->Draw();
-//mccanvas3->Print("helix_rndx_sm/sm_y/helix_Curv_rndx_smy3_R_3_3_stdK.png");
+st = folder + "helix_Curv_rndx_sm" + sm + "_R_" + R + "_stdK.png";
+mccanvas3->Print(st.c_str());
 
 TCanvas *mccanvas4 = new TCanvas("mccanvas4","",1000,800);
 Phipred->SetTitle("Phi;x(cm);#phi");
@@ -139,7 +143,8 @@ auto legend4 = new TLegend(0.325,0.75,0.675,0.9);
 legend4->AddEntry(Phipred,"A priori prediction","lep");
 legend4->AddEntry(Phipar,"A posteriori prediction","lep");
 legend4->Draw();
-//mccanvas4->Print("helix_rndx_sm/sm_y/helix_Phi_rndx_smy3_R_3_3_stdK.png");
+st = folder + "helix_Phi_rndx_sm" + sm + "_R_" + R + "_stdK.png";
+mccanvas4->Print(st.c_str());
 
 
 TCanvas *mccanvas5 = new TCanvas("mccanvas5","",1000,800);
@@ -152,5 +157,6 @@ auto legend5 = new TLegend(0.55,0.75,0.9,0.9);
 legend5->AddEntry(Lambdapred,"A priori prediction","lep");
 legend5->AddEntry(Lambdapar,"A posteriori prediction","lep");
 legend5->Draw();
-//mccanvas5->Print("helix_rndx_sm/sm_y/helix_Lambda_rndx_smy3_R_3_3_stdK.png");
+st = folder + "helix_Lambda_rndx_sm" + sm + "_R_" + R + "_stdK.png";
+mccanvas5->Print(st.c_str());
 }

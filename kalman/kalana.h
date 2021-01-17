@@ -47,7 +47,7 @@ public :
     virtual void  Init(TTree *tree);
     //virtual void  Loop(TGraphErrors *h, TGraphErrors *pred, TGraphErrors *par, Int_t nentries);
     //virtual void DoStuff();
-    virtual void Loop();
+    virtual void Loop(std::string folder,std::string  sm,std::string  R);
     //virtual void Loop(float xh, float yh, TMatrixF *R, float xpos, TVectorF *predstep, TMatrixF *PPred, TVectorF *parvec, TMatrixF *P);
 };
 
@@ -70,7 +70,7 @@ void kalana::Init(TTree *tree)
     yht = 0;
     zht = 0;
     xpost = 0;
-    ev = 0;
+    //ev = 0;
     parvect = 0;
     predstept = 0;
     Pt = 0;
@@ -81,7 +81,7 @@ void kalana::Init(TTree *tree)
     b_yht = 0;
     b_zht = 0;
     b_xpost = 0;
-    b_ev = 0;
+//   b_ev = 0;
     b_parvect = 0;
     b_predstept = 0;
     b_Pt = 0;
@@ -91,7 +91,7 @@ void kalana::Init(TTree *tree)
     tree->SetBranchAddress("xht",&xht,&b_xht);
     tree->SetBranchAddress("yht",&yht,&b_yht);
     tree->SetBranchAddress("zht",&zht,&b_zht);
-    tree->SetBranchAddress("ev",&ev,&b_ev);
+//    tree->SetBranchAddress("ev",&ev,&b_ev);
     tree->SetBranchAddress("xpost",&xpost,&b_xpost);
     tree->SetBranchAddress("parvect",&parvect,&b_parvect);
     tree->SetBranchAddress("predstept",&predstept,&b_predstept);
