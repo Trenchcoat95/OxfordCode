@@ -220,7 +220,7 @@ void l2g_trackmatch()
 							TrackEndZ->at(iRECOpart)   -z);
 			    }
 			    Float_t delX = vecX.Cross(MCpartHat).Mag();
-                std::cout<<"delX"<<delX<<std::endl;
+                std::cout<<"delX= "<<delX<<" cm"<<std::endl;
                 if ( cosTmax <= 0.96 ) continue;
 			    //if (  delX   >= 3.0   ) continue;
                 

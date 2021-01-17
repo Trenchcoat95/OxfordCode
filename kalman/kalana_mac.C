@@ -19,9 +19,9 @@
 
 void kalana_mac()
 {
-    std::string folder= "helix_rndx_sm/sm_xyz/";
-    std::string  sm= "x02y3z3";
-    std::string  R= "4_4";
+    std::string folder= "helix_rndx_sm/no_sm/";
+    std::string  sm= "x01z3";
+    std::string  R= "3_2";
     std::string  filename = "m_perfect_helix_rndx_sm"+sm+"_R_"+R+"_stdK.root";
     kalana kal = kalana("t1_FWD;1",filename.c_str());
     kal.Loop(folder,sm,R);
