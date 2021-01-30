@@ -3,6 +3,10 @@
         "l2gread.C": "cpp",
         "l2g_trackmatch.C": "cpp",
         "l2g_traj.C": "cpp",
-        "l2g_nu.C": "cpp"
+        "l2g_nu.C": "cpp",
+        "l2g_multimu.C": "cpp",
+        "kalman_helix.C": "cpp",
+        "l2g_multimu_spill.C": "cpp",
+        "l2g_multimu2.C": "cpp"
     }
 }
