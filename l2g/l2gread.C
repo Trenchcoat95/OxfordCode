@@ -17,7 +17,7 @@
 void l2gread()
 {
     TChain chain("/anatree/GArAnaTree");
-    chain.Add("/pnfs/dune/persistent/users/ebrianne/ProductionSamples/ND-LAr/nd_hall_dayone_lar_SPY_v2_wMuID/Anatree/neutrino/neutrino.nd_hall_dayone_lar_SPY_v2_wMuID.volArgonCubeActive.Ev973000.Ev973999.2037.anatree.root");
+    chain.Add("/mnt/c/Users/fedeb/Documents/Universita/Federico_2020-2021/OxfordCode/l2g/data/*.root");
 
     //neutrino.nd_hall_dayone_lar_SPY_v2_wMuID.volArgonCubeActive.Ev973000.Ev973999.2037.anatree.root
 
@@ -76,11 +76,11 @@ void l2gread()
     TH2F* hxy = new TH2F("hxy", "Muon production point distribution", 100, -500, 500, 100, -300, 300);
     TH2F* hzy = new TH2F("hzy", "Muon production point distribution", 100, 0, 2000, 100, -300, 300);
 
-    TH2F* h_theta_p = new TH2F("h_theta_p", "Theta VS p", 100, 0, 20, 100, 0, 5);
-    TH2F* h_p_theta = new TH2F("h_p_theta", "p VS theta", 100, 0, 5, 100, 0, 20);
-    TH2F* h_thetaProb_p = new TH2F("h_thetaProb_p", "P(#theta|p)", 100, 0, 20, 100, 0, 5);
-    TH2F* h_theta_pProb = new TH2F("h_theta_pProb", "P(p|#theta)", 100, 0, 20, 100, 0, 5);
-    TH2F* h_theta_pProbswap = new TH2F("h_theta_pProbswap", "P(p|#theta)", 100, 0, 5, 100, 0, 20);
+    TH2F* h_theta_p = new TH2F("h_theta_p", "Theta VS p", 100, 0, 20, 100, 0, 100);
+    TH2F* h_p_theta = new TH2F("h_p_theta", "p VS theta", 100, 0, 100, 100, 0, 20);
+    TH2F* h_thetaProb_p = new TH2F("h_thetaProb_p", "P(#theta|p)", 100, 0, 20, 100, 0, 100);
+    TH2F* h_theta_pProb = new TH2F("h_theta_pProb", "P(p|#theta)", 100, 0, 20, 100, 0, 100);
+    TH2F* h_theta_pProbswap = new TH2F("h_theta_pProbswap", "P(p|#theta)", 100, 0, 100, 100, 0, 20);
 
     TH2F* h_px_p = new TH2F("h_px_p", "px VS p", 100, 0, 20, 100, 0, 5);
     TH2F* h_pT_p = new TH2F("h_pT_p", "pT VS p", 100, 0, 20, 100, 0, 20);
@@ -108,7 +108,7 @@ void l2gread()
 
         for (Int_t j=0; j<PDG->size(); j++) 
         {
-           if(PDG->at(j)==13 || PDG->at(j)==-13)
+           if(PDG->at(j)==13)// || PDG->at(j)==-13)
            {
                float px = MCPStartPX->at(j);
                float py = MCPStartPY->at(j);
@@ -121,11 +121,11 @@ void l2gread()
                float y = MCPStartY->at(j);
                float z = MCPStartZ->at(j);
                
-               float Theta = acos(pz/p);
+               float Theta = acos(pz/p)* (180.0/3.141592653589793238463);
 
                hp->Fill(p);
-               hxy->Fill(x,y);
-               hzy->Fill(z,y);
+               if(PDGMother->at(j)==0)hxy->Fill(x,y);
+               if(PDGMother->at(j)==0)hzy->Fill(z,y);
                h_theta_p->Fill(p,Theta);
                h_p_theta->Fill(Theta,p);
                h_px_p->Fill(p,px);
@@ -252,13 +252,13 @@ void l2gread()
     gStyle->SetOptStat(0);
     hxy->SetTitle("Muon production vertex distribution;x (cm);y (cm)");
     hxy->Draw("COLZ");
-    mccanvasxy->Print("1_Muon_Startxy.png");
+    mccanvasxy->Print("1_Muon_Startxy_prim.png");
 
     TCanvas *mccanvaszy = new TCanvas("mccanvaszy","",1000,800);
     gStyle->SetOptStat(0);
     hzy->SetTitle("Muon production vertex distribution;z (cm);y (cm)");
     hzy->Draw("COLZ");
-    mccanvaszy->Print("2_Muon_Startzy.png");
+    mccanvaszy->Print("2_Muon_Startzy_prim.png");
     
 
 
