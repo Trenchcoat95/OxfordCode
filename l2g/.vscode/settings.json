@@ -7,6 +7,10 @@
         "l2g_multimu.C": "cpp",
         "kalman_helix.C": "cpp",
         "l2g_multimu_spill.C": "cpp",
-        "l2g_multimu2.C": "cpp"
+        "l2g_multimu2.C": "cpp",
+        "garana.C": "cpp",
+        "cmath": "cpp",
+        "l2g_trackmatch_test.C": "cpp",
+        "l2g_trackmatch_test2.C": "cpp"
     }
 }
