@@ -1,0 +1,5 @@
+{
+    "C_Cpp.autocomplete": "Default",
+    //"C_Cpp.default.compilerPath": "/opt/root/6.22.02-build/;/home/federico/Documents/Dune/edep-sim/edep-gcc-7-x86_64-linux-gnu/",
+    "C_Cpp.default.includePath": ["/opt/root/6.22.02-build/include","/home/federico/Documents/Dune/edep-sim/edep-gcc-7-x86_64-linux-gnu/include/EDepSim"]
+}
