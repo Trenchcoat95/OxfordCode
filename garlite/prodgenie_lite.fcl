@@ -1,0 +1,13 @@
+#include "prodgenie.fcl"
+services.GeometryGAr: @local::nd_hall_mpd_lar_dayone_geo
+physics.producers.geant: @local::standard_geant_dayone
+physics.producers.generator.FluxType: "simple_flux"
+physics.producers.generator.TopVolume: "volArgonCubeActive"
+physics.producers.generator.EventsPerSpill: 1
+physics.producers.generator.FluxFiles:          ["gsimple_*.root"]
+physics.producers.generator.FluxCopyMethod:     "DIRECT"
+physics.producers.generator.FluxSearchPaths:    "/pnfs/dune/persistent/users/mtanaz/gsimple_subdetectors/neutrino/"
+physics.producers.generator.BeamCenter:         [0., 0., -5.] 
+physics.producers.generator.BeamDirection:      [0, -0.101, 0.995] # beam angle is 101mrad
+physics.producers.generator.DetectorLocation: "DUNE_ND_HALL"
+physics.producers.generator.GXMLPATH: "/cvmfs/larsoft.opensciencegrid.org/products/genie_xsec/v3_00_04a/NULL/G1810a0211a-k250-e1000/data:/cvmfs/larsoft.opensciencegrid.org/products/genie_phyopt/v3_00_04/NULL/dkcharmtau:/nfs/dust/others/group/af-dfc/ebrianne/GenieHistFluxFiles/gsimple_ND_hall/"
