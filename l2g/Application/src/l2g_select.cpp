@@ -56,7 +56,8 @@ int Select(const char* finname, const char* foutname)
   
     
     TFile fout(foutname,"RECREATE");
-    TTree tout("tSelect","Selection");
+    //TTree tout("tSelect","Selection");
+    TTree *tout = t->CloneTree(0);
     //tout.Branch("cell","std::vector<cell>",&vec_cell);
     
     
@@ -68,7 +69,19 @@ int Select(const char* finname, const char* foutname)
     for(int i = 0; i < nev; i++)
     {
       t->GetEntry(i);
-    
+      //std::cout<<"EvNumber: "<<i<<std::endl;
+      bool copyevent= false;
+
+      for (std::map<std::string,std::vector<TG4HitSegment> >::iterator it=ev->SegmentDetectors.begin();
+            it!=ev->SegmentDetectors.end(); ++it)
+      {
+        //std::string s = it->first;
+        //const char *cstr = it.c_str();
+        //std::cout << "Segment detectors: " << it->first << std::endl;
+        if (it->first!= "ArgonCube") copyevent=true;
+      }
+      //std::cout<<std::endl;
+      if (copyevent) tout->Fill();    
       std::cout << "\b\b\b\b\b" << std::setw(3) << int(double(i)/nev*100) << "%]" << std::flush;
          
       //tout.Fill();
@@ -76,22 +89,25 @@ int Select(const char* finname, const char* foutname)
     std::cout << "\b\b\b\b\b" << std::setw(3) << 100 << "%]" << std::flush;
     std::cout << std::endl;
     
-    fout.cd();
-    //tout.Write();
-    //geo->Write();
-    //t->CloneTree()->Write();
-    //gRooTracker->CloneTree()->Write();
-    //InputKinem->CloneTree()->Write();
-    //InputFiles->CloneTree()->Write();
-    fout.Close();
+    //fout.cd();
     
-    f.Close();
+    geo->Write();
+    tout->Write();
+    //t->CloneTree()->Write();
+    TDirectory* cdir = fout.mkdir("DetSimPassThru");
+    fout.cd("DetSimPassThru");
+    gRooTracker->CloneTree()->Write();
+    InputKinem->CloneTree()->Write();
+    InputFiles->CloneTree()->Write();
+    //fout.Close();
+    
+    //f.Close();
 	return 0;
 }
 
 void help_select()
 {
-  std::cout << "l2g_Select <input file> <output file>" << std::endl;
+  std::cout << "Select <input file> <output file>" << std::endl;
   std::cout << "input file name could contain wild card" << std::endl;
 } 
 
