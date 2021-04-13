@@ -56,12 +56,8 @@ int Select(const char* finname, const char* foutname)
   
     
     TFile fout(foutname,"RECREATE");
-<<<<<<< HEAD
     //TTree tout("tSelect","Selection");
     TTree *tout = t->CloneTree(0);
-=======
-    TTree tout("tSelect","Selection");
->>>>>>> 935a7574c65f0e85c49bc56b38202615b1a91c0f
     //tout.Branch("cell","std::vector<cell>",&vec_cell);
     
     
@@ -73,7 +69,6 @@ int Select(const char* finname, const char* foutname)
     for(int i = 0; i < nev; i++)
     {
       t->GetEntry(i);
-<<<<<<< HEAD
       //std::cout<<"EvNumber: "<<i<<std::endl;
       bool copyevent= false;
 
@@ -87,9 +82,6 @@ int Select(const char* finname, const char* foutname)
       }
       //std::cout<<std::endl;
       if (copyevent) tout->Fill();    
-=======
-    
->>>>>>> 935a7574c65f0e85c49bc56b38202615b1a91c0f
       std::cout << "\b\b\b\b\b" << std::setw(3) << int(double(i)/nev*100) << "%]" << std::flush;
          
       //tout.Fill();
@@ -97,7 +89,6 @@ int Select(const char* finname, const char* foutname)
     std::cout << "\b\b\b\b\b" << std::setw(3) << 100 << "%]" << std::flush;
     std::cout << std::endl;
     
-<<<<<<< HEAD
     //fout.cd();
     
     geo->Write();
@@ -111,28 +102,13 @@ int Select(const char* finname, const char* foutname)
     //fout.Close();
     
     //f.Close();
-=======
-    fout.cd();
-    //tout.Write();
-    //geo->Write();
-    //t->CloneTree()->Write();
-    //gRooTracker->CloneTree()->Write();
-    //InputKinem->CloneTree()->Write();
-    //InputFiles->CloneTree()->Write();
-    fout.Close();
-    
-    f.Close();
->>>>>>> 935a7574c65f0e85c49bc56b38202615b1a91c0f
+    //Tutto molto bello
 	return 0;
 }
 
 void help_select()
 {
-<<<<<<< HEAD
   std::cout << "Select <input file> <output file>" << std::endl;
-=======
-  std::cout << "l2g_Select <input file> <output file>" << std::endl;
->>>>>>> 935a7574c65f0e85c49bc56b38202615b1a91c0f
   std::cout << "input file name could contain wild card" << std::endl;
 } 
 
@@ -144,3 +120,4 @@ int main(int argc, char* argv[])
   else
     Select(argv[1], argv[2]);
 }
+
