@@ -9,7 +9,11 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/Select",
+<<<<<<< HEAD
             "args": ["/home/federico/Documents/Universita/Federico_2020-2021/OxfordCode/l2g/Application/data/neutrino.0.edep.root","/home/federico/Documents/Universita/Federico_2020-2021/OxfordCode/l2g/Application/data/test.root"],
+=======
+            "args": ["/home/federico/Documents/Universita/Federico_2020-2021/OxfordCode/l2g/Application/data/LAr.neutrino.251.edepsim.root","/home/federico/Documents/Universita/Federico_2020-2021/OxfordCode/l2g/Application/data/LAr.neutrino.251.edepsim2.root"],
+>>>>>>> 935a7574c65f0e85c49bc56b38202615b1a91c0f
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [{"name": "ROOTSYS", "value": "/home/federico/Documents/Dune/edep-sim/edep-gcc-7-x86_64-linux-gnu/include;/opt/root/6.22.02-build"},
