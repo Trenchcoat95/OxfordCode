@@ -10,12 +10,16 @@ EDEPGLIBS = -L$(EDEPSIM)/lib/ -ledepsim -ledepsim_io
 EDEPINCDIR = $(EDEPSIM)/include/EDepSim
 
 #all: Digitize Reconstruct Analyze
-all: Select
+all: Select GetDistribution
 #Time MinDigitize
 
 
 Select: 
 	g++ src/l2g_select.cpp -o bin/$@ $(CFLAGS) $(LDFLAGS) -I$(EDEPINCDIR) -Iinclude $(ROOTGLIBS) -lGeom -lEG \
+	$(EDEPGLIBS) -Llib -g
+
+GetDistribution: 
+	g++ src/l2g_Distributions.cpp -o bin/$@ $(CFLAGS) $(LDFLAGS) -I$(EDEPINCDIR) -Iinclude $(ROOTGLIBS) -lGeom -lEG \
 	$(EDEPGLIBS) -Llib -g
 	
 
