@@ -108,7 +108,7 @@ int Select(const char* finname, const char* foutname)
 int SelectGeo(const char* finname, const char* foutname)
 {
 
-  TVector3 LArCenter(0,0,6660);
+  TVector3 LArCenter(0.0012207,-822.23,6660);
   TVector3 ArgonCubeActiveDims(7146.999999999999,3010.2,5091);
   TVector3 LArUpLimit = LArCenter+0.5*ArgonCubeActiveDims;
   TVector3 LArLowLimit = LArCenter-0.5*ArgonCubeActiveDims;
