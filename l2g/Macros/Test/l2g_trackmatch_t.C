@@ -16,6 +16,7 @@
 #include <TMatrix.h>
 #include <TChain.h>
 #include <TF1.h>
+#include <TF1NormSum.h>
 #include "garana.h"
 
 //   In a ROOT session, you can do:
@@ -24,7 +25,7 @@
   //      root> t.GetEntry(12); // Fill t data members with entry number 12
   //      root> t.Show();       // Show values of entry 12
   //      root> t.Show(16);     // Read and show values of entry 16
-  //      root> t.Loop();       // Loop on all entries
+  //      root> t.l2g_Trackmatch();       // Use the trackmatching function
 
 void GetProbabilityPlot(TH2F * HSTD, TH2F * &HPROB)
 {
@@ -52,13 +53,15 @@ void GetProbabilityPlot(TH2F * HSTD, TH2F * &HPROB)
 void garana::l2g_Trackmatch()
 {
 
-    //TVector3 GArCenter(0,-150.473,1486); //Correct values
-    //bool edge=false;
-    TVector3 GArCenter(0,-68.287,1486);  //Edge sample values
-    bool edge=true;
+    TVector3 GArCenter(0,-150.473,1486); //Correct values
+    bool edge=false;
+    //TVector3 GArCenter(0,-68.287,1486);  //Edge sample values
+    //bool edge=true;
     float GAr_r = 349.9;
     float GAr_L = 669.6;
     Int_t nentries = fChain->GetEntries();
+
+    gROOT->SetBatch(); ///Run in batch mode
 
 
     #pragma region "Plot Declaration"
@@ -66,16 +69,20 @@ void garana::l2g_Trackmatch()
         /////////////////////////////////////1D plots of the three main variables
         TH1F* hnhits_RecoTracks_Sample = new TH1F("hnhits_RecoTracks_Sample", "nhits distribution for all muon tracks in GAr", 20, 0, 20);
         TH1F* hptrueStart_InGAr_Sample = new TH1F("hptrueStart_InGAr_Sample", "ptrue distribution for the sample of muons traversing GAr", 50, 0, 8);
-        TH1F* htheta_InGAr_Sample = new TH1F("hmu_theta_InGAr_Sample", "Thetatrue distribution for the sample of muons traversing GAr", 180, 0, 180.0);
+        TH1F* htheta_InGAr_Sample = new TH1F("hmu_theta_InGAr_Sample", "Thetatrue distribution for the sample of muons traversing GAr",80, 0, 80.0);
 
         /////////////////////////////////////1D Distribution of matched tracks
         TH1F* hnhits_RecoTracks_Matched = new TH1F("hnhits_RecoTracks_Matched", "nhits distribution for all matched muon tracks in GAr", 20, 0, 20);
         TH1F* hptrueStart_InGAr_Matched = new TH1F("hptrueStart_InGAr_Matched", "ptrue distribution for all matched muon tracks", 50, 0, 8);
-        TH1F* htheta_InGAr_Matched = new TH1F("htheta_InGAr_Matched", "Thetatrue distribution for all matched muon tracks", 180, 0, 180.0);
+        TH1F* htheta_InGAr_Matched = new TH1F("htheta_InGAr_Matched", "Thetatrue distribution for all matched muon tracks", 80, 0, 80.0);
 
         /////////////////////////////////////Charge resolution
         TH1F* hmu_good_recocharge_p_start = new TH1F("hmu_good_recocharge_p_start", "Reconstructed charge resolution", 50, 0, 8.0);
         TH1F* hmu_all_recocharge_p_start = new TH1F("hmu_all_recocharge_p_start", "Reconstructed charge resolution", 50, 0, 8.0);
+        TH1F* hmu_good_recocharge_nhits = new TH1F("hmu_good_recocharge_nhits", "Reconstructed charge resolution", 16, 2, 18);
+        TH1F* hmu_all_recocharge_nhits = new TH1F("hmu_all_recocharge_nhits", "Reconstructed charge resolution", 16, 2, 18);
+        TH1F* hmu_good_recocharge_Theta = new TH1F("hmu_good_recocharge_Theta", "Reconstructed charge resolution", 55, 0, 55);
+        TH1F* hmu_all_recocharge_Theta = new TH1F("hmu_all_recocharge_Theta", "Reconstructed charge resolution", 55, 0, 55);
         
         /////////////////////////////////////1D Fractional Residual distribution for the reconstructed muons
         TH1F* frac_resid = new TH1F("frac_resid", "Fractional residuals", 150, -0.4, 0.4);
@@ -83,10 +90,18 @@ void garana::l2g_Trackmatch()
         /////////////////////////////////////Fractional Residuals 2D   
         TH2F* pVSfrac_resid = new TH2F("pVSfrac_resid", "Fractional residuals",50,0,8, 50, -1, 1);
         TH2F* PpVSfrac_resid = new TH2F("PpVSfrac_resid", "P(Residual|p)",50,0,8, 50, -1, 1);
-        TH2F* nhitsVSfrac_resid = new TH2F("nhitsVSfrac_resid", "Fractional residuals",20,0,20, 50, -1, 1);
-        TH2F* PnhitsVSfrac_resid = new TH2F("PnhitsVSfrac_resid", "P(Residual|Theta)",20,0,20, 50, -1, 1);
-        TH2F* ThetaVSfrac_resid = new TH2F("ThetaVSfrac_resid", "Fractional residuals",80,0,80, 50, -1, 1);
-        TH2F* PThetaVSfrac_resid = new TH2F("PThetaVSfrac_resid", "P(Residual|Theta)",80,0,80, 50, -1, 1);
+        TH2F* nhitsVSfrac_resid = new TH2F("nhitsVSfrac_resid", "Fractional residuals",16,2,18, 50, -1, 1);
+        TH2F* PnhitsVSfrac_resid = new TH2F("PnhitsVSfrac_resid", "P(Residual|Theta)",16,2,18, 50, -1, 1);
+        TH2F* ThetaVSfrac_resid = new TH2F("ThetaVSfrac_resid", "Fractional residuals",50,0,50, 50, -1, 1);
+        TH2F* PThetaVSfrac_resid = new TH2F("PThetaVSfrac_resid", "P(Residual|Theta)",50,0,50, 50, -1, 1);
+
+        /////////////////////////////////////Slice fit plots
+        TH2F* pVSfrac_resid_SL = new TH2F("pVSfrac_residSL", "Fractional residuals",10,0,8, 150, -0.4, 0.4);
+        TH2F* nhitsVSfrac_resid_SL = new TH2F("nhitsVSfrac_residSL", "Fractional residuals",14,2,16, 150, -0.4, 0.4);
+        TH2F* ThetaVSfrac_resid_SL = new TH2F("ThetaVSfrac_residSL", "Fractional residuals",12,0,48, 150, -0.4, 0.4);
+        TObjArray pSlices;
+        TObjArray nhitsSlices;
+        TObjArray ThetaSlices;
 
     #pragma endregion    
 
@@ -105,7 +120,14 @@ void garana::l2g_Trackmatch()
         float pzNu= MCNuPz->at(0);
         TVector3 MCNu(pxNu,pyNu,pzNu);
 
-        //Cycle over MC Tracks
+        //Fill the nhits per track distribution
+        int nTracks = TrackStartX->size();
+        for (int iTrack=0; iTrack<nTracks; ++iTrack) 
+        {
+            hnhits_RecoTracks_Sample->Fill(NTPCClustersOnTrack->at(iTrack));
+        }
+
+        //Cycle over MC Particle
         for (Int_t j=0; j<PDG->size(); j++) 
         {
            if((PDG->at(j)==13 || PDG->at(j)==-13) && PDGMother->at(j)==0) //consider only primary muons
@@ -127,7 +149,7 @@ void garana::l2g_Trackmatch()
 
                int InGAr=0;
 
-               //Cycle over all trajectory points, Find the ones corresponding to the current MC Track and Find first point in GAr
+               //Cycle over all trajectory points, Find the ones corresponding to the current MC Particle and Find first point in GAr
                for (Int_t k=0; k<TrajMCPX->size(); k++) 
                 {
                     if (TrajMCPTrackID->at(k)==ID)
@@ -149,9 +171,15 @@ void garana::l2g_Trackmatch()
                     }
                 }
 
+                //Fill the MC Particle in GAr distributions 
+                if(InGAr!=0) 
+                {
+                    htheta_InGAr_Sample->Fill(ThetaNuMu * (180.0/3.141592653589793238463));
+                    hptrueStart_InGAr_Sample->Fill(pSt);
+                }
+
                //TRACK MAtching
                
-               int nTracks = TrackStartX->size();
                TVector3 MCpart(px,py,pz);
                TVector3 MCpartHat = MCpart.Unit();
                double cosTmax = -1000;
@@ -163,14 +191,14 @@ void garana::l2g_Trackmatch()
                if(InGAr!=0)
                {
                     //Fill the MC track in GAr distributions  
-                    htheta_InGAr_Sample->Fill(ThetaNuMu * (180.0/3.141592653589793238463));
-                    hptrueStart_InGAr_Sample->Fill(pSt);
+                    //htheta_InGAr_Sample->Fill(ThetaNuMu * (180.0/3.141592653589793238463));
+                    //hptrueStart_InGAr_Sample->Fill(pSt);
                     
                     //looping over all reconstructed tracks
                     for (int iTrack=0; iTrack<nTracks; ++iTrack) 
                     {
-                            hnhits_RecoTracks_Sample->Fill(NTPCClustersOnTrack->at(iTrack));
 
+                            //hnhits_RecoTracks_Sample->Fill(NTPCClustersOnTrack->at(iTrack));
                             TVector3 RECO_P_beg(TrackStartPX->at(iTrack), TrackStartPY->at(iTrack),TrackStartPZ->at(iTrack));
                             TVector3 RECO_P_end(TrackEndPX->at(iTrack), TrackEndPY->at(iTrack),  TrackEndPZ->at(iTrack));
                             int RECO_CHARGE_beg=TrackStartQ->at(iTrack);
@@ -235,13 +263,25 @@ void garana::l2g_Trackmatch()
                     //Fill fractional residual plots
                     double preco = RECO_P.Mag();
                     frac_resid->Fill((preco-p)/p);
-                    pVSfrac_resid->Fill(p,(preco-p)/p);
+                    pVSfrac_resid->Fill(pSt,(preco-p)/p);
                     nhitsVSfrac_resid->Fill(NTPCClustersOnTrack->at(iRECOpart),(preco-p)/p);
                     ThetaVSfrac_resid->Fill(ThetaNuMu* (180.0/3.141592653589793238463),(preco-p)/p);
+                    pVSfrac_resid_SL->Fill(pSt,(preco-p)/p);
+                    nhitsVSfrac_resid_SL->Fill(NTPCClustersOnTrack->at(iRECOpart),(preco-p)/p);
+                    ThetaVSfrac_resid_SL->Fill(ThetaNuMu* (180.0/3.141592653589793238463),(preco-p)/p);
 
                     //Fill charge reconstruction resolution
-                    if((PDG->at(j)==13 && RECO_CHARGE==-1) || (PDG->at(j)==-13 && RECO_CHARGE==1)) hmu_good_recocharge_p_start->Fill(p);
-                    hmu_all_recocharge_p_start->Fill(p);
+                    hmu_all_recocharge_p_start->Fill(pSt);
+                    hmu_all_recocharge_nhits->Fill(NTPCClustersOnTrack->at(iRECOpart));
+                    hmu_all_recocharge_Theta->Fill(ThetaNuMu* (180.0/3.141592653589793238463));
+                    if((PDG->at(j)==13 && RECO_CHARGE==-1) || (PDG->at(j)==-13 && RECO_CHARGE==1)) 
+                    {
+                        hmu_good_recocharge_p_start->Fill(pSt);
+                        hmu_good_recocharge_nhits->Fill(NTPCClustersOnTrack->at(iRECOpart));
+                        hmu_good_recocharge_Theta->Fill(ThetaNuMu* (180.0/3.141592653589793238463));
+                    }
+                    
+                    
                 }
 
                
@@ -257,6 +297,20 @@ void garana::l2g_Trackmatch()
     GetProbabilityPlot(pVSfrac_resid,PpVSfrac_resid);
     GetProbabilityPlot(nhitsVSfrac_resid,PnhitsVSfrac_resid);
     GetProbabilityPlot(ThetaVSfrac_resid,PThetaVSfrac_resid);
+
+    /////Define fitting function for Fractional Residual Plots
+    //TF1 *double_gauss = new TF1("double_gauss","0.39894228040143*[0]*(exp(-0.5*((x-[1])/[2])^2)+[3]*exp(-0.5*((x-([1]+abs([4])))/[5])^2))",-0.4,0.4);
+    TF1 *double_gauss = new TF1("double_gauss","0.39894228040143*0.005*([0]/[2])*(exp(-0.5*((x-[1])/[2])^2)+[3]*exp(-0.5*((x-([1]+abs([4])))/[5])^2)*([2]/[5]))",-0.4,0.4);
+    //TF1 *double_gauss_new = new TF1("double_gauss_new","0.39894228040143*[0]*(exp(-0.5*((x-[1])/[2])^2)/[2]+[3]*exp(-0.5*((x-([1]+abs([4])))/[5])^2)/[5])",-0.4,0.4);
+    //double_gauss->SetParameters(800,-0.01,0.05,0.01,0.02,0.1);
+    
+    /////Construct fit evolution plots
+    double_gauss->SetParameters(5000,-0.01,0.05,0.01,0,0.1);
+    pVSfrac_resid_SL->FitSlicesY(double_gauss, 0, -1, 0, "QNR", &pSlices);
+    double_gauss->SetParameters(5000,-0.01,0.05,0.01,0,0.1);
+    nhitsVSfrac_resid_SL->FitSlicesY(double_gauss, 0, -1, 0, "QNR", &nhitsSlices);
+    double_gauss->SetParameters(3500,-0.01,0.05,0.01,0,0.1);
+    ThetaVSfrac_resid_SL->FitSlicesY(double_gauss, 0, -1, 0, "QNR", &ThetaSlices);
     
     #pragma region "Plotting"
 
@@ -268,14 +322,16 @@ void garana::l2g_Trackmatch()
         else mccanvasnhits->Print("Standard/nhits1D.png");
 
         TCanvas *mccanvasp = new TCanvas("mccanvasp","",1000,800);
-        hptrueStart_InGAr_Sample->SetTitle("p_{true} distribution for the sample of muons traversing GAr;p_{true}(GeV/c);n");
+        hptrueStart_InGAr_Sample->SetTitle("p_{true} distribution for the sample of muons traversing GAr;p_{true}^{St}(GeV/c);n");
+        hptrueStart_InGAr_Sample->SetMaximum(23000);
         hptrueStart_InGAr_Sample->Draw();
         if (edge) mccanvasp->Print("Edge/ptrue1D_edge.png");
         else mccanvasp->Print("Standard/ptrue1D.png");
 
         TCanvas *mccanvasTheta = new TCanvas("mccanvasTheta","",1000,800);
-        htheta_InGAr_Sample->SetTitle("#theta_{true} distribution for the sample of muons traversing GAr;#theta_{true}(deg);n");
+        htheta_InGAr_Sample->SetTitle("#theta_{true} distribution for the sample of muons traversing GAr;#theta_{true}^{St}(deg);n");
         htheta_InGAr_Sample->Draw();
+        htheta_InGAr_Sample->SetMaximum(22000);
         if (edge) mccanvasTheta->Print("Edge/Thetatrue1D_edge.png");
         else mccanvasTheta->Print("Standard/Thetatrue1D.png");
     
@@ -287,41 +343,46 @@ void garana::l2g_Trackmatch()
         else mccanvasnhitsm->Print("Standard/nhits1D_matched.png");
 
         TCanvas *mccanvaspm = new TCanvas("mccanvaspm","",1000,800);
-        hptrueStart_InGAr_Matched->SetTitle("p_{true} distribution for the sample of matched muon tracks;p_{true}(GeV/c);n");
+        hptrueStart_InGAr_Matched->SetTitle("p_{true} distribution for the sample of matched muon tracks;p_{true}^{St}(GeV/c);n");
         hptrueStart_InGAr_Matched->Draw();
+        hptrueStart_InGAr_Matched->SetMaximum(23000);
         if(edge) mccanvaspm->Print("Edge/ptrue1D_matched_edge.png");
         else mccanvaspm->Print("Standard/ptrue1D_matched.png");
 
         TCanvas *mccanvasThetam = new TCanvas("mccanvasThetam","",1000,800);
-        htheta_InGAr_Matched->SetTitle("#theta_{true} distribution for the sample of matched muon tracks;#theta_{true}(deg);n");
+        htheta_InGAr_Matched->SetTitle("#theta_{true} distribution for the sample of matched muon tracks;#theta_{true}^{St}(deg);n");
         htheta_InGAr_Matched->Draw();
+        htheta_InGAr_Matched->SetMaximum(22000);
         if(edge) mccanvasThetam->Print("Edge/Thetatrue1D_matched_edge.png");
         else mccanvasThetam->Print("Standard/Thetatrue1D_matched.png");
 
         ///////////////////////////////////////////////Efficiency plots
         TCanvas *mccanvasHitsEff = new TCanvas("mccanvasHitsEff","",1000,800);
         gStyle->SetOptStat(0);
-        hnhits_RecoTracks_Matched->SetTitle("Reconstruction (track matching) efficiency as function of number of hits;p_{true} [GeV/c];n(matched)/n(Reco Tracks)");
+        hnhits_RecoTracks_Matched->SetTitle("Reconstruction (track matching) efficiency as function of number of hits;n_{hits};n(matched)/n(Reco Tracks)");
         hnhits_RecoTracks_Matched->Divide(hnhits_RecoTracks_Sample);
         hnhits_RecoTracks_Matched->SetMinimum(0);
+        hnhits_RecoTracks_Matched->SetMaximum(0.7);
         hnhits_RecoTracks_Matched->Draw();
         if (edge) mccanvasHitsEff->Print("Edge/nhits1D_Efficiency_edge.png");
         else mccanvasHitsEff->Print("Standard/nhits1D_Efficiency.png");
 
         TCanvas *mccanvasPEff = new TCanvas("mccanvasPEff","",1000,800);
         gStyle->SetOptStat(0);
-        hptrueStart_InGAr_Matched->SetTitle("Reconstruction (track matching) efficiency as function of initial momentum;p_{true} [GeV/c];n(matched)/n(MC Tracks in GAr)");
+        hptrueStart_InGAr_Matched->SetTitle("Reconstruction (track matching) efficiency as function of initial momentum;p_{true}^{St} [GeV/c];n(matched)/n(MC Tracks in GAr)");
         hptrueStart_InGAr_Matched->Divide(hptrueStart_InGAr_Sample);
         hptrueStart_InGAr_Matched->SetMinimum(0);
+        hptrueStart_InGAr_Matched->SetMaximum(0.7);
         hptrueStart_InGAr_Matched->Draw();
         if(edge) mccanvasPEff->Print("Edge/ptrue1D_Efficiency_edge.png");
         else mccanvasPEff->Print("Standard/ptrue1D_Efficiency.png");
 
         TCanvas *mccanvasAngleEff = new TCanvas("mccanvasAngleEff","",1000,800);
         gStyle->SetOptStat(0);
-        htheta_InGAr_Matched->SetTitle("Reconstruction (track matching) efficiency as function of initial momentum;#theta_{#nu#mu} [deg];n(matched)/n(MC Tracks in GAr)");
+        htheta_InGAr_Matched->SetTitle("Reconstruction (track matching) efficiency as function of initial momentum;#theta_{true}^{St} [deg];n(matched)/n(MC Tracks in GAr)");
         htheta_InGAr_Matched->Divide(htheta_InGAr_Sample);
         htheta_InGAr_Matched->SetMinimum(0);
+        htheta_InGAr_Matched->SetMaximum(0.7);
         htheta_InGAr_Matched->Draw();
         if(edge) mccanvasAngleEff->Print("Edge/Thetatrue1D_Efficiency_edge.png");
         else mccanvasAngleEff->Print("Standard/Thetatrue1D_Efficiency.png");
@@ -329,45 +390,75 @@ void garana::l2g_Trackmatch()
         /////////////////////////////////////////////////////Charge Resolution
         TCanvas *mccanvascharge = new TCanvas("mccanvascharge","",1000,800);
         gStyle->SetOptStat(0);
-        hmu_good_recocharge_p_start->SetTitle("Charge reconstruction resolution;p_{true}[GeV/c];n(correct)/n(matched)");
+        hmu_good_recocharge_p_start->SetTitle("Charge reconstruction resolution;p_{true}^{St}[GeV/c];n(correct)/n(matched)");
         hmu_good_recocharge_p_start->Sumw2();
         hmu_good_recocharge_p_start->Divide(hmu_good_recocharge_p_start,hmu_all_recocharge_p_start,1,1,"B");
         hmu_good_recocharge_p_start->SetMinimum(0.5);
         hmu_good_recocharge_p_start->Draw();
-        if (edge) mccanvascharge->Print("Edge/ChargeRes_ErrorBars_Edge.png");
-        else mccanvascharge->Print("Standard/ChargeRes_ErrorBars_Edge.png");
+        if (edge) mccanvascharge->Print("Edge/ChargeRes_ErrorBars_p_edge.png");
+        else mccanvascharge->Print("Standard/ChargeRes_ErrorBars_p.png");
+
+        TCanvas *mccanvaschargenhits = new TCanvas("mccanvaschargenhits","",1000,800);
+        gStyle->SetOptStat(0);
+        hmu_good_recocharge_nhits->SetTitle("Charge reconstruction resolution;n_{hits};n(correct)/n(matched)");
+        hmu_good_recocharge_nhits->Sumw2();
+        hmu_good_recocharge_nhits->Divide(hmu_good_recocharge_nhits,hmu_all_recocharge_nhits,1,1,"B");
+        hmu_good_recocharge_nhits->SetMinimum(0.5);
+        hmu_good_recocharge_nhits->Draw();
+        if (edge) mccanvaschargenhits->Print("Edge/ChargeRes_ErrorBars_nhits_edge.png");
+        else mccanvaschargenhits->Print("Standard/ChargeRes_ErrorBars.png");
+
+        TCanvas *mccanvaschargeTheta = new TCanvas("mccanvaschargeTheta","",1000,800);
+        gStyle->SetOptStat(0);
+        hmu_good_recocharge_Theta->SetTitle("Charge reconstruction resolution;#theta_{true}^{St}[deg];n(correct)/n(matched)");
+        hmu_good_recocharge_Theta->Sumw2();
+        hmu_good_recocharge_Theta->Divide(hmu_good_recocharge_Theta,hmu_all_recocharge_Theta,1,1,"B");
+        hmu_good_recocharge_Theta->SetMinimum(0.5);
+        hmu_good_recocharge_Theta->Draw();
+        if (edge) mccanvaschargeTheta->Print("Edge/ChargeRes_ErrorBars_Theta_edge.png");
+        else mccanvaschargeTheta->Print("Standard/ChargeRes_ErrorBars_Theta.png");
 
         ////////////////////////////////////////////////////Fractional Residual 1D plot
         TCanvas *mccanvas_fracresid = new TCanvas("mccanvas_fracresid","",1000,800);
         gStyle->SetOptStat(1);
         frac_resid->SetTitle("Momentum fractional residuals (Double Gauss Fit);(p_{reco}-p_{true})/p_{true};n(#mu in GAr-Lite)");
-        TF1 *double_gauss = new TF1("double_gauss","[0]*(exp(-0.5*((x-[1])/[2])^2)+[3]*exp(-0.5*((x-([1]+abs([4])))/[5])^2))",-0.4,0.4);
-        double_gauss->SetParameter(0,8000);
-        double_gauss->SetParameter(1,-0.01);
-        double_gauss->SetParameter(2,0.05);
-        double_gauss->SetParameter(3,0.01);
-        double_gauss->SetParameter(4,0);
-        double_gauss->SetParameter(5,0.1);
+        double_gauss->SetParameters(100000,-0.01,0.05,0.01,0,0.1);
         frac_resid->Fit("double_gauss");
         gStyle->SetOptFit(1);
         frac_resid->Draw();
+        TF1 *gauss1 = new TF1("gauss1","0.39894228040143*0.005*([0]/[2])*(exp(-0.5*((x-[1])/[2])^2))",-0.4,0.4);
+        gauss1->SetParameters(double_gauss->GetParameter(0),double_gauss->GetParameter(1),double_gauss->GetParameter(2));
+        gauss1->SetLineColor(kBlue);
+        gauss1->SetLineStyle(9);
+        gauss1->Draw("SAME");
+        TF1 *gauss2 = new TF1("gauss2","0.39894228040143*0.005*([0]/[2])*(exp(-0.5*((x-[1])/[2])^2))",-0.4,0.4);
+        gauss2->SetParameters(double_gauss->GetParameter(0)*double_gauss->GetParameter(3),double_gauss->GetParameter(1)+abs(double_gauss->GetParameter(4)),double_gauss->GetParameter(5));
+        gauss2->SetLineColor(kBlue);
+        gauss2->SetLineStyle(9);
+        gauss2->Draw("SAME");
         if (edge) mccanvas_fracresid->Print("Edge/Frac_resid_two_gauss_fullspectrum_edge.png");
         else mccanvas_fracresid->Print("Standard/Frac_resid_two_gauss_fullspectrum.png");
 
         ///////////////////////////////////////////////////////Fractional ResidualVSptrue
         TCanvas *mccanvas_pVSfracresid = new TCanvas("mccanvas_pVSfracresid","",1000,800);
         gStyle->SetOptStat(0);
-        pVSfrac_resid->SetTitle("Momentum fractional residuals VS p_{true};p_{true}(GeV/c);(p_{reco}-p_{true})/p_{true}");
+        pVSfrac_resid->SetTitle("Momentum fractional residuals VS p_{true}^{St};p_{true}^{St}(GeV/c);(p_{reco}-p_{true})/p_{true}");
         pVSfrac_resid->Draw("COLZ");
         if (edge) mccanvas_pVSfracresid->Print("Edge/pVSFrac_resid_edge.png");
         else  mccanvas_pVSfracresid->Print("Standard/pVSFrac_resid.png");
 
         TCanvas *mccanvas_pVSfracresidP = new TCanvas("mccanvas_pVSfracresidP","",1000,800);
         gStyle->SetOptStat(0);
-        PpVSfrac_resid->SetTitle("P(Residual|p_{true});p_{true}(GeV/c);(p_{reco}-p_{true})/p_{true}");
+        PpVSfrac_resid->SetTitle("P(Residual|p_{true}^{St});p_{true}^{St}(GeV/c);(p_{reco}-p_{true})/p_{true}");
         PpVSfrac_resid->Draw("COLZ");
         if (edge) mccanvas_pVSfracresidP->Print("Edge/PpVSFrac_resid_edge.png");
         else  mccanvas_pVSfracresidP->Print("Standard/PpVSFrac_resid.png");
+
+        TCanvas *mccanvas_pVSfracresidProj = new TCanvas("mccanvas_pVSfracresidProj","",1000,800);
+        TH1D * pVSfrac_resid_projY = pVSfrac_resid->ProjectionY("pVSfrac_resid_projY",10,11,"");
+        pVSfrac_resid_projY->Draw();
+        if (edge) mccanvas_pVSfracresidProj->Print("Edge/pVSFrac_resid_proj_edge.png");
+        else  mccanvas_pVSfracresidProj->Print("Standard/pVSFrac_resid_proj.png");
 
         ///////////////////////////////////////////////////////Fractional ResidualVSnhits
         TCanvas *mccanvas_hitsVSfracresid = new TCanvas("mccanvas_hitsVSfracresid","",1000,800);
@@ -387,167 +478,173 @@ void garana::l2g_Trackmatch()
         ///////////////////////////////////////////////////////Fractional ResidualVSTheta
         TCanvas *mccanvas_ThetaVSfracresid = new TCanvas("mccanvas_ThetaVSfracresid","",1000,800);
         gStyle->SetOptStat(0);
-        ThetaVSfrac_resid->SetTitle("Momentum fractional residuals VS #theta;#theta;(p_{reco}-p_{true})/p_{true}");
+        ThetaVSfrac_resid->SetTitle("Momentum fractional residuals VS #theta_{true}^{St};#theta_{true}^{St};(p_{reco}-p_{true})/p_{true}");
         ThetaVSfrac_resid->Draw("COLZ");
         if (edge) mccanvas_ThetaVSfracresid->Print("Edge/ThetaVSFrac_resid_edge.png");
         else  mccanvas_ThetaVSfracresid->Print("Standard/ThetaVSFrac_resid.png");
 
         TCanvas *mccanvas_ThetaVSfracresidP = new TCanvas("mccanvas_ThetaVSfracresidP","",1000,800);
         gStyle->SetOptStat(0);
-        PThetaVSfrac_resid->SetTitle("P(Residual|#theta);#theta;(p_{reco}-p_{true})/p_{true}");
+        PThetaVSfrac_resid->SetTitle("P(Residual|#theta_{true}^{St});#theta_{true}^{St};(p_{reco}-p_{true})/p_{true}");
         PThetaVSfrac_resid->Draw("COLZ");
         if (edge) mccanvas_ThetaVSfracresidP->Print("Edge/PThetaVSFrac_resid_edge.png");
         else  mccanvas_ThetaVSfracresidP->Print("Standard/PThetaVSFrac_resid.png");
 
+        /////////////////////////////////////////////////////////Fit evolution Fractional Residual in p slices
+
+        TCanvas *mccanvas_param0p = new TCanvas("mccanvas_param0p","",1000,800);
+        pSlices.At(0)->Draw();
+        if (edge) mccanvas_param0p->Print("Edge/pslices_0_edge.png");
+        else  mccanvas_param0p->Print("Standard/pslices_0.png");
+
+        TCanvas *mccanvas_param1p = new TCanvas("mccanvas_param1p","",1000,800);
+        TH1D* hpSlices1=(TH1D*) pSlices.At(1);
+        hpSlices1->SetMaximum(0.03);
+        hpSlices1->SetMinimum(-0.03);
+        hpSlices1->Draw();
+        if (edge) mccanvas_param1p->Print("Edge/pslices_1_edge.png");
+        else  mccanvas_param1p->Print("Standard/pslices_1.png");
+
+        TCanvas *mccanvas_param2p = new TCanvas("mccanvas_param2p","",1000,800);
+        TH1D* hpSlices2=(TH1D*) pSlices.At(2);
+        hpSlices2->SetMaximum(0.05);
+        hpSlices2->SetMinimum(0.0);
+        hpSlices2->Draw();
+        if (edge) mccanvas_param2p->Print("Edge/pslices_2_edge.png");
+        else  mccanvas_param2p->Print("Standard/pslices_2.png");
+
+        TCanvas *mccanvas_param3p = new TCanvas("mccanvas_param3p","",1000,800);
+        TH1D* hpSlices3=(TH1D*) pSlices.At(3);
+        hpSlices3->SetMaximum(10.0);
+        hpSlices3->SetMinimum(-1.0);
+        hpSlices3->Draw();
+        if (edge) mccanvas_param3p->Print("Edge/pslices_3_edge.png");
+        else  mccanvas_param3p->Print("Standard/pslices_3.png");
+
+        TCanvas *mccanvas_param4p = new TCanvas("mccanvas_param4p","",1000,800);
+        TH1D* hpSlices4=(TH1D*) pSlices.At(4);
+        hpSlices4->SetMaximum(1);
+        hpSlices4->SetMinimum(-1);
+        hpSlices4->Draw();
+        if (edge) mccanvas_param4p->Print("Edge/pslices_4_edge.png");
+        else  mccanvas_param4p->Print("Standard/pslices_4.png");
+
+        TCanvas *mccanvas_param5p = new TCanvas("mccanvas_param5p","",1000,800);
+        TH1D* hpSlices5=(TH1D*) pSlices.At(5);
+        hpSlices5->SetMaximum(3);
+        hpSlices5->SetMinimum(-1);
+        hpSlices5->Draw();
+        if (edge) mccanvas_param5p->Print("Edge/pslices_5_edge.png");
+        else  mccanvas_param5p->Print("Standard/pslices_5.png");
+
+        TCanvas *mccanvas_paramchip = new TCanvas("mccanvas_paramchip","",1000,800);
+        pSlices.At(6)->Draw();
+        if (edge) mccanvas_paramchip->Print("Edge/pslices_chi_edge.png");
+        else  mccanvas_paramchip->Print("Standard/pslices_chi.png");
+
+        /////////////////////////////////////////////////////////Fit evolution Fractional Residual in nhits slices
+
+        TCanvas *mccanvas_param0nhits = new TCanvas("mccanvas_paramnhits","",1000,800);
+        nhitsSlices.At(0)->Draw();
+        if (edge) mccanvas_param0nhits->Print("Edge/nhitsslices_0_edge.png");
+        else  mccanvas_param0nhits->Print("Standard/nhitsslices_0.png");
+
+        TCanvas *mccanvas_param1nhits = new TCanvas("mccanvas_param1nhits","",1000,800);
+        TH1D* hnhitsSlices1=(TH1D*) nhitsSlices.At(1);
+        hnhitsSlices1->SetMaximum(10);
+        hnhitsSlices1->SetMinimum(-10);
+        hnhitsSlices1->Draw();
+        if (edge) mccanvas_param1nhits->Print("Edge/nhitsslices_1_edge.png");
+        else  mccanvas_param1nhits->Print("Standard/nhitsslices_1.png");
+
+        TCanvas *mccanvas_param2nhits = new TCanvas("mccanvas_param2nhits","",1000,800);
+        TH1D* hnhitsSlices2=(TH1D*) nhitsSlices.At(2);
+        hnhitsSlices2->SetMaximum(10);
+        hnhitsSlices2->SetMinimum(-10);
+        hnhitsSlices2->Draw();
+        if (edge) mccanvas_param2nhits->Print("Edge/nhitsslices_2_edge.png");
+        else  mccanvas_param2nhits->Print("Standard/nhitsslices_2.png");
+
+        TCanvas *mccanvas_param3nhits = new TCanvas("mccanvas_param3nhits","",1000,800);
+        TH1D* hnhitsSlices3=(TH1D*) nhitsSlices.At(3);
+        hnhitsSlices3->SetMaximum(10);
+        hnhitsSlices3->SetMinimum(-10);
+        hnhitsSlices3->Draw();
+        if (edge) mccanvas_param3nhits->Print("Edge/nhitsslices_3_edge.png");
+        else  mccanvas_param3nhits->Print("Standard/nhitsslices_3.png");
+
+        TCanvas *mccanvas_param4nhits = new TCanvas("mccanvas_param4nhits","",1000,800);
+        TH1D* hnhitsSlices4=(TH1D*) nhitsSlices.At(1);
+        hnhitsSlices4->SetMaximum(10);
+        hnhitsSlices4->SetMinimum(-10);
+        hnhitsSlices4->Draw();
+        if (edge) mccanvas_param4nhits->Print("Edge/nhitsslices_4_edge.png");
+        else  mccanvas_param4nhits->Print("Standard/nhitsslices_4.png");
+
+        TCanvas *mccanvas_param5nhits = new TCanvas("mccanvas_param5nhits","",1000,800);
+        TH1D* hnhitsSlices5=(TH1D*) nhitsSlices.At(1);
+        hnhitsSlices5->SetMaximum(10);
+        hnhitsSlices5->SetMinimum(-10);
+        hnhitsSlices5->Draw();
+        if (edge) mccanvas_param5nhits->Print("Edge/nhitsslices_5_edge.png");
+        else  mccanvas_param5nhits->Print("Standard/nhitsslices_5.png");
+
+        TCanvas *mccanvas_paramchinhits = new TCanvas("mccanvas_paramchinhits","",1000,800);
+        nhitsSlices.At(6)->Draw();
+        if (edge) mccanvas_paramchinhits->Print("Edge/nhitsslices_chi_edge.png");
+        else  mccanvas_paramchinhits->Print("Standard/nhitsslices_chi.png");
+
+        /////////////////////////////////////////////////////////Fit evolution Fractional Residual in Theta slices
+
+        TCanvas *mccanvas_param0Theta = new TCanvas("mccanvas_param0Theta","",1000,800);
+        ThetaSlices.At(0)->Draw();
+        if (edge) mccanvas_param0Theta->Print("Edge/Thetaslices_0_edge.png");
+        else  mccanvas_param0Theta->Print("Standard/Thetaslices_0.png");
+
+        TCanvas *mccanvas_param1Theta = new TCanvas("mccanvas_param1Theta","",1000,800);
+        TH1D* hThetaSlices1=(TH1D*) ThetaSlices.At(1);
+        hThetaSlices1->SetMaximum(0.3);
+        hThetaSlices1->SetMinimum(-0.3);
+        hThetaSlices1->Draw();
+        if (edge) mccanvas_param1Theta->Print("Edge/Thetaslices_1_edge.png");
+        else  mccanvas_param1Theta->Print("Standard/Thetaslices_1.png");
+
+        TCanvas *mccanvas_param2Theta = new TCanvas("mccanvas_param2Theta","",1000,800);
+        TH1D* hThetaSlices2=(TH1D*) ThetaSlices.At(2);
+        hThetaSlices2->SetMaximum(1);
+        hThetaSlices2->SetMinimum(-1);
+        hThetaSlices2->Draw();
+        if (edge) mccanvas_param2Theta->Print("Edge/Thetaslices_2_edge.png");
+        else  mccanvas_param2Theta->Print("Standard/Thetaslices_2.png");
+
+        TCanvas *mccanvas_param3Theta = new TCanvas("mccanvas_param3Theta","",1000,800);
+        TH1D* hThetaSlices3=(TH1D*) ThetaSlices.At(3);
+        hThetaSlices3->SetMaximum(1);
+        hThetaSlices3->SetMinimum(-1);
+        hThetaSlices3->Draw();
+        if (edge) mccanvas_param3Theta->Print("Edge/Thetaslices_3_edge.png");
+        else  mccanvas_param3Theta->Print("Standard/Thetaslices_3.png");
+
+        TCanvas *mccanvas_param4Theta = new TCanvas("mccanvas_param4Theta","",1000,800);
+        TH1D* hThetaSlices4=(TH1D*) ThetaSlices.At(4);
+        hThetaSlices4->SetMaximum(1);
+        hThetaSlices4->SetMinimum(-1);
+        hThetaSlices4->Draw();
+        if (edge) mccanvas_param4Theta->Print("Edge/Thetaslices_4_edge.png");
+        else  mccanvas_param4Theta->Print("Standard/Thetaslices_4.png");
+
+        TCanvas *mccanvas_param5Theta = new TCanvas("mccanvas_param5Theta","",1000,800);
+        ThetaSlices.At(5)->Draw();
+        if (edge) mccanvas_param5Theta->Print("Edge/Thetaslices_5_edge.png");
+        else  mccanvas_param5Theta->Print("Standard/Thetaslices_5.png");
+
+        TCanvas *mccanvas_paramchiTheta = new TCanvas("mccanvas_paramchiTheta","",1000,800);
+        ThetaSlices.At(6)->Draw();
+        if (edge) mccanvas_paramchiTheta->Print("Edge/Thetaslices_chi_edge.png");
+        else  mccanvas_paramchiTheta->Print("Standard/Thetaslices_chi.png");
+
+        
+
     #pragma endregion
-    /*
-    TH2F *hmu_good_reco_thetanu_2 = (TH2F*)hmu_good_reco_thetanu->Clone("hmu_good_reco_thetanu_2");
-    TH2F *hmu_good_reco_pmu_2 = (TH2F*)hmu_good_reco_pmu->Clone("hmu_good_reco_pmu_2");
 
-    TCanvas *mccanvasnhits = new TCanvas("mccanvasnhits","",1000,800);
-    hnhits->SetTitle("n hits per track;nhits;n");
-    hnhits->Draw();
-    //mccanvasnhits->Print("nhits.png");
-
-    TCanvas *mccanvasdz = new TCanvas("mccanvasndz","",1000,800);
-    hz->SetTitle("dz;dz(cm);n");
-    hz->Draw();
-    //mccanvasdz->Print("dz.png");
-
-    TCanvas *mccanvascos = new TCanvas("mccanvascos","",1000,800);
-    //gStyle->SetOptStat(0);
-    hcos->SetTitle("cos#theta;cos#theta;n");
-    //hcos->Divide(hmu_all_thetanu);
-    //hcos->SetMinimum(0);
-    hcos->Draw();
-    //mccanvascos->Print("cos.png");
-
-    TCanvas *mccanvasdelX = new TCanvas("mccanvasdelX","",1000,800);
-    //gStyle->SetOptStat(0);
-    hdelX->SetTitle("delX;delX(cm);n");
-    //hcos->Divide(hmu_all_thetanu);
-    //hcos->SetMinimum(0);
-    hdelX->Draw();
-    //mccanvasdelX->Print("delX.png");
-
-    TCanvas *mccanvasReco = new TCanvas("mccanvasReco","",1000,800);
-    gStyle->SetOptStat(0);
-    hmu_good_reco_thetanu->SetTitle("Reconstruction efficiency as function of angle;#theta_{#nu#mu} [deg];n(reco)/n(primary #mu in LAr)");
-    hmu_good_reco_thetanu->Divide(hmu_all_thetanu);
-    hmu_good_reco_thetanu->SetMinimum(0);
-    hmu_good_reco_thetanu->Draw();
-    //mccanvasReco->Print("Plots/New/AngleRecoEfficiency.png");
-
-    TCanvas *mccanvasReco2 = new TCanvas("mccanvasReco2","",1000,800);
-    gStyle->SetOptStat(0);
-    hmu_good_reco_thetanu_2->SetTitle("Reconstruction efficiency as function of angle;#theta_{#nu#mu} [deg];n(reco)/n(primary #mu in LAr+GAr)");
-    hmu_good_reco_thetanu_2->Divide(hmu_all_thetanu_InGAr);
-    hmu_good_reco_thetanu_2->SetMinimum(0);
-    hmu_good_reco_thetanu_2->Draw();
-    //mccanvasReco2->Print("Plots/New/AngleRecoEfficiency_InGAr.png");
-
-    TCanvas *mccanvasRecop = new TCanvas("mccanvasRecop","",1000,800);
-    gStyle->SetOptStat(0);
-    hmu_good_reco_pmu->SetTitle("Reconstruction efficiency as function of momentum;p_{#mu}^{start} [GeV/c];n(reco)/n(primary #mu in LAr)");
-    hmu_good_reco_pmu->Divide(hmu_all_pmu);
-    hmu_good_reco_pmu->SetMinimum(0);
-    hmu_good_reco_pmu->Draw();
-    //mccanvasRecop->Print("Plots/New/PRecoEfficiency.png");
-
-    TCanvas *mccanvasRecop2 = new TCanvas("mccanvasRecop2","",1000,800);
-    gStyle->SetOptStat(0);
-    hmu_good_reco_pmu_2->SetTitle("Reconstruction efficiency as function of momentum;p_{#mu}^{start} [GeV/c];n(reco)/n(primary #mu in LAr+GAr)");
-    hmu_good_reco_pmu_2->Divide(hmu_all_pmu_InGAr);
-    hmu_good_reco_pmu_2->SetMinimum(0);
-    hmu_good_reco_pmu_2->Draw();
-    //mccanvasRecop2->Print("Plots/New/PRecoEfficiency_InGAr.png");
-    
-    TCanvas *mccanvascharge = new TCanvas("mccanvascharge","",1000,800);
-    gStyle->SetOptStat(0);
-    hmu_good_recocharge_p_start->SetTitle("Charge reconstruction resolution;p_{true}[GeV/c];n(reco ok)/n(muons matched in ND-GAr-Lite)");
-    hmu_good_recocharge_p_start->Sumw2();
-    hmu_good_recocharge_p_start->Divide(hmu_good_recocharge_p_start,hmu_all_recocharge_p_start,1,1,"B");
-    hmu_good_recocharge_p_start->SetMinimum(0.5);
-    hmu_good_recocharge_p_start->Draw();
-    //mccanvascharge->Print("Plots/New/ChargeRes_ErrorBars.png");
-
-    TCanvas *mccanvas_fracresid = new TCanvas("mccanvas_fracresid","",1000,800);
-    gStyle->SetOptStat(1);
-    frac_resid->SetTitle("Momentum fractional residuals with 2.3<p<2.5 GeV (Gauss Fit);(p_{reco}-p_{true})/p_{true};n(#mu in GAr-Lite)");
-    TF1 *double_gauss = new TF1("double_gauss","[0]*(exp(-0.5*((x-[1])/[2])^2)+[3]*exp(-0.5*((x-[4])/[5])^2))",-0.4,0.4);
-    //double_gauss->SetParameter(0,8000);
-    double_gauss->SetParameter(0,8000);
-    double_gauss->SetParameter(1,-0.01);
-    double_gauss->SetParameter(2,0.05);
-    double_gauss->SetParameter(3,0.01);
-    double_gauss->SetParameter(4,0);
-    double_gauss->SetParameter(5,0.1);
-    frac_resid->Fit("double_gauss");
-    //frac_resid->Fit("gaus","","",-0.1,0.1);
-    gStyle->SetOptFit(1);
-    frac_resid->Draw();
-    //mccanvas_fracresid->Print("Plots/New/Frac_resid_two_gauss_fullspectrum.png");
-
-    TCanvas *mccanvas_fracresidone = new TCanvas("mccanvas_fracresidone","",1000,800);
-    gStyle->SetOptStat(1);
-    frac_resid_g->SetTitle("Momentum fractional residuals with 2.3<p<2.5 GeV (Gauss Fit);(p_{reco}-p_{true})/p_{true};n(#mu in GAr-Lite)");
-    //TF1 *double_gauss = new TF1("double_gauss","[0]*(exp(-0.5*((x-[1])/[2])^2)+[3]*exp(-0.5*((x-[4])/[5])^2))",-0.4,0.4);
-    //double_gauss->SetParameter(0,11000);
-    //double_gauss->SetParameter(1,-0.01);
-    //double_gauss->SetParameter(2,0.02);
-    //double_gauss->SetParameter(3,0.05);
-    //double_gauss->SetParameter(4,0);
-    //double_gauss->SetParameter(5,0.08);
-    //frac_resid->Fit("double_gauss");
-    frac_resid_g->Fit("gaus","","",-0.1,0.1);
-    gStyle->SetOptFit(1);
-    frac_resid_g->Draw();
-    //mccanvas_fracresidone->Print("Plots/New/Frac_resid_one_gauss_fullspectrum.png");
-    //_fullspectrum
-
-    TCanvas *mccanvas_fracresid_cauchy = new TCanvas("mccanvas_fracresid_cauchy","",1000,800);
-    gStyle->SetOptStat(1);
-    TF1 *fitfunc = new TF1("fitfunc",CauchyPeak,-10,10,3);
-    Double_t fitpar[3];
-    fitpar[0] = 0.05;
-    fitpar[1] = 0.05;
-    fitpar[2] = 100;
-    fitfunc->SetParameters(fitpar);
-    frac_resid_c->Draw("same");
-    frac_resid_c->SetTitle("Momentum fractional residuals with 2.3<p<2.5 GeV (Cauchy Fit);(p_{reco}-p_{true})/p_{true};n(#mu in GAr-Lite)");
-    frac_resid_c->Fit("fitfunc","","",-0.09,0.09);
-    gStyle->SetOptFit(1);
-    //mccanvas_fracresid_cauchy->Print("Plots/New/Frac_resid_cauchy_fullspectrum.png");
-
-    TCanvas *mccanvas_truep = new TCanvas("mccanvas_truep","",1000,800);
-    gStyle->SetOptStat(1);
-    ptrue->SetTitle("True momentum of muons in GAr;p_{true}(GeV/c);n(muons in GAr)");
-    ptrue->Draw();
-    //mccanvas_truep->Print("Plots/New/Truep_InGAr.png");
-
-    TCanvas *mccanvas_pVSfracresid = new TCanvas("mccanvas_pVSfracresid","",1000,800);
-    gStyle->SetOptStat(0);
-    pVSfrac_resid->SetTitle("Momentum fractional residuals VS p_{true};p_{true}(GeV/c);(p_{reco}-p_{true})/p_{true}");
-    pVSfrac_resid->Draw("COLZ");
-    //mccanvas_pVSfracresid->Print("Plots/New/pVSFrac_resid.png");
-
-    TCanvas *mccanvas_pVSfracresidP = new TCanvas("mccanvas_pVSfracresidP","",1000,800);
-    gStyle->SetOptStat(0);
-    PpVSfrac_resid->SetTitle("P(Residual|p_{true});p_{true}(GeV/c);(p_{reco}-p_{true})/p_{true}");
-    PpVSfrac_resid->Draw("COLZ");
-    //mccanvas_pVSfracresidP->Print("Plots/New/PpVSFrac_resid.png");
-
-    TCanvas *mccanvas_nhitsVSfracresid = new TCanvas("mccanvas_nhitsVSfracresid","",1000,800);
-    gStyle->SetOptStat(0);
-    nhitsVSfrac_resid->SetTitle("Momentum fractional residuals VS n(hits) ;n(hits);(p_{reco}-p_{true})/p_{true}");
-    nhitsVSfrac_resid->Draw("COLZ");
-    //mccanvas_nhitsVSfracresid->Print("Plots/New/nhitsVSFrac_resid_prange.png");
-
-    TCanvas *mccanvas_nhitsVSfracresidP = new TCanvas("mccanvas_nhitsVSfracresidP","",1000,800);
-    gStyle->SetOptStat(0);
-    PnhitsVSfrac_resid->SetTitle("P(Residual|n(hits));n(hits);(p_{reco}-p_{true})/p_{true}");
-    PnhitsVSfrac_resid->Draw("COLZ");
-    //mccanvas_nhitsVSfracresidP->Print("Plots/New/PnhitsVSFrac_resid_prange.png");
-    */
-    
 }

@@ -64,7 +64,8 @@
         "streambuf": "cpp",
         "thread": "cpp",
         "cinttypes": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "SumTF1.C": "cpp"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }
