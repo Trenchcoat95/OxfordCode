@@ -122,11 +122,12 @@ void garana::l2g_Trackmatch()
 
         //Fill the nhits per track distribution
         int nTracks = TrackStartX->size();
+        /*
         for (int iTrack=0; iTrack<nTracks; ++iTrack) 
         {
             hnhits_RecoTracks_Sample->Fill(NTPCClustersOnTrack->at(iTrack));
         }
-
+        */
         //Cycle over MC Particle
         for (Int_t j=0; j<PDG->size(); j++) 
         {
@@ -176,6 +177,10 @@ void garana::l2g_Trackmatch()
                 {
                     htheta_InGAr_Sample->Fill(ThetaNuMu * (180.0/3.141592653589793238463));
                     hptrueStart_InGAr_Sample->Fill(pSt);
+                    for (int iTrack=0; iTrack<nTracks; ++iTrack) 
+                    {
+                        hnhits_RecoTracks_Sample->Fill(NTPCClustersOnTrack->at(iTrack));
+                    }
                 }
 
                //TRACK MAtching
@@ -317,6 +322,7 @@ void garana::l2g_Trackmatch()
         ///////////////////////////////////////////////1D distributions for three main variables
         TCanvas *mccanvasnhits = new TCanvas("mccanvasnhits","",1000,800);
         hnhits_RecoTracks_Sample->SetTitle("number of hits distribution for all muon tracks in GAr;n_{hits};n");
+        hnhits_RecoTracks_Sample->SetMaximum(48000);
         hnhits_RecoTracks_Sample->Draw();
         if (edge) mccanvasnhits->Print("Edge/nhits1D_edge.png");
         else mccanvasnhits->Print("Standard/nhits1D.png");
@@ -362,7 +368,7 @@ void garana::l2g_Trackmatch()
         hnhits_RecoTracks_Matched->SetTitle("Reconstruction (track matching) efficiency as function of number of hits;n_{hits};n(matched)/n(Reco Tracks)");
         hnhits_RecoTracks_Matched->Divide(hnhits_RecoTracks_Sample);
         hnhits_RecoTracks_Matched->SetMinimum(0);
-        hnhits_RecoTracks_Matched->SetMaximum(0.7);
+        hnhits_RecoTracks_Matched->SetMaximum(0.8);
         hnhits_RecoTracks_Matched->Draw();
         if (edge) mccanvasHitsEff->Print("Edge/nhits1D_Efficiency_edge.png");
         else mccanvasHitsEff->Print("Standard/nhits1D_Efficiency.png");

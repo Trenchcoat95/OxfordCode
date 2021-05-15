@@ -65,7 +65,8 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "SumTF1.C": "cpp"
+        "SumTF1.C": "cpp",
+        "l2g_toy.C": "cpp"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }
