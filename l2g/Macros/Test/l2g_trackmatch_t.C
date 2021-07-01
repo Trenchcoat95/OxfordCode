@@ -49,7 +49,7 @@ void GetProbabilityPlot(TH2F * HSTD, TH2F * &HPROB)
     }
 }
 
-void FitSlicesYCustom(TH2F * HSTD, TF1* Func, TObjArray &HPROB)
+void FitSlicesYCustom(TH2F * HSTD, TF1* Func, TObjArray &HPROB, std::string type, bool edge)
 {
     TH1D* h0= new TH1D("h0", "", HSTD->GetNbinsX(), HSTD->GetXaxis()->GetXmin(), HSTD->GetXaxis()->GetXmax());
     TH1D* h1= new TH1D("h1", "", HSTD->GetNbinsX(), HSTD->GetXaxis()->GetXmin(), HSTD->GetXaxis()->GetXmax());
@@ -58,6 +58,8 @@ void FitSlicesYCustom(TH2F * HSTD, TF1* Func, TObjArray &HPROB)
     TH1D* h4= new TH1D("h4", "", HSTD->GetNbinsX(), HSTD->GetXaxis()->GetXmin(), HSTD->GetXaxis()->GetXmax());
     TH1D* h5= new TH1D("h5", "", HSTD->GetNbinsX(), HSTD->GetXaxis()->GetXmin(), HSTD->GetXaxis()->GetXmax());
     TH1D* hchi= new TH1D("hchi", "", HSTD->GetNbinsX(), HSTD->GetXaxis()->GetXmin(), HSTD->GetXaxis()->GetXmax());
+    TCanvas *mccanvas_Slices = new TCanvas("mccanvas_Slices","",1000,800);
+    gStyle->SetOptFit(1);
 
     for (Int_t x=HSTD->GetNbinsX(); x>=1; x--)
     {
@@ -65,9 +67,10 @@ void FitSlicesYCustom(TH2F * HSTD, TF1* Func, TObjArray &HPROB)
         if (projY->GetEntries()>1000)
         {
             if(x==HSTD->GetNbinsX()) Func->SetParameters(projY->GetEntries(),projY->GetMean(),projY->GetRMS(),0.5,projY->GetRMS(),projY->GetRMS());
+            //if(x==HSTD->GetNbinsX()) Func->SetParameters(projY->GetEntries(),projY->GetMean(),projY->GetRMS(),0.5,projY->GetMean(),projY->GetRMS());
             else Func->SetParameter(0,projY->GetEntries());
             projY->Fit(Func->GetName(),"Q");
-            std::cout<<"Bin: "<<x<<" Entries: "<<projY->GetEntries()<<" Param 4: "<<Func->GetParameter(4)<<std::endl;
+            //std::cout<<"Bin: "<<x<<" Entries: "<<projY->GetEntries()<<" Param 4: "<<Func->GetParameter(4)<<std::endl;
         }
     }
 
@@ -79,19 +82,39 @@ void FitSlicesYCustom(TH2F * HSTD, TF1* Func, TObjArray &HPROB)
             //if(x==1) Func->SetParameters(projY->GetEntries(),projY->GetMean(),projY->GetRMS(),0.5,projY->GetRMS(),projY->GetRMS());
             if (x!=1) Func->SetParameter(0,projY->GetEntries());
             projY->Fit(Func->GetName(),"Q");
+
+            projY->Draw();
+            std::string Formula0 = "0.39894228040143*"+std::to_string(projY->GetBinWidth(0))+"*([0]/[2])*(exp(-0.5*((x-[1])/[2])^2))";
+            TF1 *gauss0 = new TF1("gauss1",Formula0.c_str(),-0.4,0.4);
+            gauss0->SetParameters(Func->GetParameter(0),Func->GetParameter(1),Func->GetParameter(2));
+            gauss0->SetLineColor(kBlue);
+            gauss0->SetLineStyle(9);
+            gauss0->Draw("SAME");
+            TF1 *gauss2 = new TF1("gauss2",Formula0.c_str(),-0.4,0.4);
+            //gauss2->SetParameters(double_gauss->GetParameter(0)*double_gauss->GetParameter(3),double_gauss->GetParameter(1)+abs(double_gauss->GetParameter(4)),double_gauss->GetParameter(5));
+            gauss2->SetParameters(Func->GetParameter(0)*Func->GetParameter(3),Func->GetParameter(4),Func->GetParameter(5));
+            gauss2->SetLineColor(kBlue);
+            gauss2->SetLineStyle(9);
+            gauss2->Draw("SAME");
+
+            std::string xstring;
+            if(edge)  xstring ="Edge/Slices/"+type+"_SlicesFit_"+std::to_string(x)+"_edge.png";
+            else  xstring ="Standard/Slices/"+type+"_SlicesFit_"+std::to_string(x)+".png";
+            //std::cout<<xstring.c_str()<<std::endl;
+            mccanvas_Slices->Print(xstring.c_str());
             if(Func->GetChisquare()/Func->GetNDF()<100)
             {
-                h0->SetBinContent(x,abs(Func->GetParameter(0)));
+                h0->SetBinContent(x,(Func->GetParameter(0)));
                 h0->SetBinError(x,Func->GetParError(0));
                 h1->SetBinContent(x,Func->GetParameter(1));
                 if(Func->GetParError(1)<100) h1->SetBinError(x,Func->GetParError(1));
-                h2->SetBinContent(x,abs(Func->GetParameter(2)));
+                h2->SetBinContent(x,(Func->GetParameter(2)));
                 if(Func->GetParError(2)<100) h2->SetBinError(x,Func->GetParError(2));
-                h3->SetBinContent(x,abs(Func->GetParameter(3)));
+                h3->SetBinContent(x,(Func->GetParameter(3)));
                 if(Func->GetParError(3)<100) h3->SetBinError(x,Func->GetParError(3));
-                h4->SetBinContent(x,abs(Func->GetParameter(4)));
+                h4->SetBinContent(x,Func->GetParameter(4));
                 if(Func->GetParError(4)<100) h4->SetBinError(x,Func->GetParError(4));
-                h5->SetBinContent(x,abs(Func->GetParameter(5)));
+                h5->SetBinContent(x,(Func->GetParameter(5)));
                 if(Func->GetParError(5)<100) h5->SetBinError(x,Func->GetParError(5));
                 hchi->SetBinContent(x,Func->GetChisquare()/Func->GetNDF());
             }
@@ -110,10 +133,10 @@ void FitSlicesYCustom(TH2F * HSTD, TF1* Func, TObjArray &HPROB)
 void garana::l2g_Trackmatch()
 {
 
-    TVector3 GArCenter(0,-150.473,1486); //Correct values
-    bool edge=false;
-    //TVector3 GArCenter(0,-68.287,1486);  //Edge sample values
-    //bool edge=true;
+    //TVector3 GArCenter(0,-150.473,1486); //Correct values
+    //bool edge=false;
+    TVector3 GArCenter(0,-68.287,1486);  //Edge sample values
+    bool edge=true;
     float GAr_r = 349.9;
     float GAr_L = 669.6;
     Int_t nentries = fChain->GetEntries();
@@ -123,10 +146,15 @@ void garana::l2g_Trackmatch()
 
     #pragma region "Plot Declaration"
 
-        /////////////////////////////////////1D plots of the three main variables
+        /////////////////////////////////////1D plots of the three main variables and 2D correlations
         TH1F* hnhits_RecoTracks_Sample = new TH1F("hnhits_RecoTracks_Sample", "nhits distribution for all muon tracks in GAr", 20, 0, 20);
         TH1F* hptrueStart_InGAr_Sample = new TH1F("hptrueStart_InGAr_Sample", "ptrue distribution for the sample of muons traversing GAr", 50, 0, 8);
         TH1F* htheta_InGAr_Sample = new TH1F("hmu_theta_InGAr_Sample", "Thetatrue distribution for the sample of muons traversing GAr",80, 0, 80.0);
+
+        TH2F* hnhitsVSptrueStart_InGAr_Sample = new TH2F("hptrueStartVSnhits_InGAr_Sample ", "ptrue distribution for the sample of muons traversing GAr",50, 0, 8, 20, 0, 20);
+        TH2F* hnhitsVSTheta_InGAr_Sample = new TH2F("hthetaVSnhits_InGAr_Sample ", "ptrue distribution for the sample of muons traversing GAr",80, 0, 80.0, 20, 0, 20);
+        TH2F* PnhitsVSptrueStart_InGAr_Sample = new TH2F("PptrueStartVSnhits_InGAr_Sample ", "ptrue distribution for the sample of muons traversing GAr", 50, 0, 8, 20, 0, 20);
+        TH2F* PnhitsVSTheta_InGAr_Sample = new TH2F("PthetaVSnhits_InGAr_Sample ", "ptrue distribution for the sample of muons traversing GAr",80, 0, 80.0, 20, 0, 20);
 
         /////////////////////////////////////1D Distribution of matched tracks
         TH1F* hnhits_RecoTracks_Matched = new TH1F("hnhits_RecoTracks_Matched", "nhits distribution for all matched muon tracks in GAr", 20, 0, 20);
@@ -153,9 +181,9 @@ void garana::l2g_Trackmatch()
         TH2F* PThetaVSfrac_resid = new TH2F("PThetaVSfrac_resid", "P(Residual|Theta)",50,0,50, 50, -0.3, 0.3);
 
         /////////////////////////////////////Slice fit plots
-        TH2F* pVSfrac_resid_SL = new TH2F("pVSfrac_residSL", "Fractional residuals",6,1.6,8, 150, -0.4, 0.4);
+        TH2F* pVSfrac_resid_SL = new TH2F("pVSfrac_residSL", "Fractional residuals",7,1,8, 150, -0.4, 0.4);
         TH2F* nhitsVSfrac_resid_SL = new TH2F("nhitsVSfrac_residSL", "Fractional residuals",14,2,16, 150, -0.4, 0.4);
-        TH2F* ThetaVSfrac_resid_SL = new TH2F("ThetaVSfrac_residSL", "Fractional residuals",9,0,36, 150, -0.4, 0.4);
+        TH2F* ThetaVSfrac_resid_SL = new TH2F("ThetaVSfrac_residSL", "Fractional residuals",8,0,32, 150, -0.4, 0.4);
         TObjArray pSlices;
         TObjArray nhitsSlices;
         TObjArray ThetaSlices;
@@ -231,6 +259,8 @@ void garana::l2g_Trackmatch()
                     for (int iTrack=0; iTrack<nTracks; ++iTrack) 
                     {
                         hnhits_RecoTracks_Sample->Fill(NTPCClustersOnTrack->at(iTrack));
+                        hnhitsVSptrueStart_InGAr_Sample->Fill(pSt,NTPCClustersOnTrack->at(iTrack));
+                        hnhitsVSTheta_InGAr_Sample->Fill(ThetaNuMu * (180.0/3.141592653589793238463),NTPCClustersOnTrack->at(iTrack));
                     }
                 }
 
@@ -350,15 +380,18 @@ void garana::l2g_Trackmatch()
     GetProbabilityPlot(pVSfrac_resid,PpVSfrac_resid);
     GetProbabilityPlot(nhitsVSfrac_resid,PnhitsVSfrac_resid);
     GetProbabilityPlot(ThetaVSfrac_resid,PThetaVSfrac_resid);
+    GetProbabilityPlot(hnhitsVSptrueStart_InGAr_Sample,PnhitsVSptrueStart_InGAr_Sample);
+    GetProbabilityPlot(hnhitsVSTheta_InGAr_Sample,PnhitsVSTheta_InGAr_Sample);
 
     /////Define fitting function for Fractional Residual Plots
-    std::string Formula = "0.39894228040143*"+std::to_string(frac_resid->GetBinWidth(0))+"*([0]/[2])*(exp(-0.5*((x-[1])/[2])^2)+[3]*exp(-0.5*((x-([1]+abs([4])))/[5])^2)*([2]/[5]))";
+    //std::string Formula = "0.39894228040143*"+std::to_string(frac_resid->GetBinWidth(0))+"*([0]/[2])*(exp(-0.5*((x-[1])/[2])^2)+[3]*exp(-0.5*((x-([1]+abs([4])))/[5])^2)*([2]/[5]))";
+    std::string Formula = "0.39894228040143*"+std::to_string(frac_resid->GetBinWidth(0))+"*([0]/[2])*(exp(-0.5*((x-[1])/[2])^2)+[3]*exp(-0.5*((x-([1]+[4]))/[5])^2)*([2]/[5]))";
     TF1 *double_gauss = new TF1("double_gauss",Formula.c_str(),-0.4,0.4);
 
     /////Construct fit evolution plots
-    FitSlicesYCustom(pVSfrac_resid_SL,double_gauss,pSlices);
-    FitSlicesYCustom(nhitsVSfrac_resid_SL,double_gauss,nhitsSlices);
-    FitSlicesYCustom(ThetaVSfrac_resid_SL,double_gauss,ThetaSlices);
+    FitSlicesYCustom(pVSfrac_resid_SL,double_gauss,pSlices,"p",edge);
+    FitSlicesYCustom(nhitsVSfrac_resid_SL,double_gauss,nhitsSlices,"nhits",edge);
+    FitSlicesYCustom(ThetaVSfrac_resid_SL,double_gauss,ThetaSlices,"Theta",edge);
     
     #pragma region "Plotting"
 
@@ -383,8 +416,39 @@ void garana::l2g_Trackmatch()
         htheta_InGAr_Sample->SetMaximum(22000);
         if (edge) mccanvasTheta->Print("Edge/Thetatrue1D_edge.png");
         else mccanvasTheta->Print("Standard/Thetatrue1D.png");
+
+        ///////////////////////////////////////////////2D distributions for three main variables
+        TCanvas *mccanvaspVSnhits = new TCanvas("mccanvaspVSnhits","",1000,800);
+        hnhitsVSptrueStart_InGAr_Sample->SetTitle("n_{hits} VS p_{true}^{St};p_{true}^{St}(GeV/c);n_{hits}");
+        hnhitsVSptrueStart_InGAr_Sample->Draw("COLZ");
+        if (edge) mccanvaspVSnhits->Print("Edge/nhitsVSp_edge.png");
+        else mccanvaspVSnhits->Print("Standard/nhitsVSp.png");
+
+        TCanvas *mccanvasPpVSnhits = new TCanvas("mccanvasPpVSnhits","",1000,800);
+        PnhitsVSptrueStart_InGAr_Sample->SetTitle("P(n_{hits}|p_{true}^{St});p_{true}^{St}(GeV/c);n_{hits}");
+        PnhitsVSptrueStart_InGAr_Sample->Draw("COLZ");
+        if (edge) mccanvasPpVSnhits->Print("Edge/PnhitsVSp_edge.png");
+        else mccanvasPpVSnhits->Print("Standard/PnhitsVSp.png");
+
+        TCanvas *mccanvasThetaVSnhits = new TCanvas("mccanvasThetaVSnhits","",1000,800);
+        hnhitsVSTheta_InGAr_Sample->SetTitle("n_{hits} VS #theta_{true}^{St} ;#theta_{true}^{St}(deg);n_{hits}");
+        hnhitsVSTheta_InGAr_Sample->Draw("COLZ");
+        if (edge) mccanvasThetaVSnhits->Print("Edge/nhitsVSTheta_edge.png");
+        else mccanvasThetaVSnhits->Print("Standard/nhitsVSTheta.png");
+
+        TCanvas *mccanvasPThetaVSnhits = new TCanvas("mccanvasPThetaVSnhits","",1000,800);
+        PnhitsVSTheta_InGAr_Sample->SetTitle("P(n_{hits}|#theta_{true}^{St}) ;#theta_{true}^{St}(deg);n_{hits}");
+        PnhitsVSTheta_InGAr_Sample->Draw("COLZ");
+        if (edge) mccanvasPThetaVSnhits->Print("Edge/PnhitsVSTheta_edge.png");
+        else mccanvasPThetaVSnhits->Print("Standard/PnhitsVSTheta.png");
+
+        TCanvas *mccanvas_pVSnhitsProj = new TCanvas("mccanvas_pVSnhitsProj","",1000,800);
+        TH1D * pVSnhits_projY = hnhitsVSptrueStart_InGAr_Sample->ProjectionY("hnhitsVSptrueStart_InGAr_Sample",10,10,"");
+        pVSnhits_projY->Draw();
+        if (edge) mccanvas_pVSnhitsProj->Print("Edge/pVSpVSnhits_projY_edge.png");
+        else  mccanvas_pVSnhitsProj->Print("Standard/pVSnhits_projY.png");
     
-        ///////////////////////////////////////////////1D distributions of matched tracksfor three main variables
+        ///////////////////////////////////////////////1D distributions of matched tracks for three main variables
         TCanvas *mccanvasnhitsm = new TCanvas("mccanvasnhitsm","",1000,800);
         hnhits_RecoTracks_Matched->SetTitle("nhits distribution of matched muon tracks in GAr;nhits;n");
         hnhits_RecoTracks_Matched->Draw();
@@ -472,6 +536,7 @@ void garana::l2g_Trackmatch()
         gStyle->SetOptStat(1);
         frac_resid->SetTitle("Momentum fractional residuals (Double Gauss Fit);(p_{reco}-p_{true})/p_{true};n(#mu in GAr-Lite)");
         double_gauss->SetParameters(frac_resid->GetEntries(),frac_resid->GetMean(),frac_resid->GetRMS(),0.5,frac_resid->GetRMS(),frac_resid->GetRMS());
+        //double_gauss->SetParameters(frac_resid->GetEntries(),frac_resid->GetMean(),frac_resid->GetRMS(),0.5,frac_resid->GetMean(),frac_resid->GetRMS());
         frac_resid->Fit("double_gauss");
         gStyle->SetOptFit(1);
         frac_resid->Draw();
@@ -482,7 +547,8 @@ void garana::l2g_Trackmatch()
         gauss1->SetLineStyle(9);
         gauss1->Draw("SAME");
         TF1 *gauss2 = new TF1("gauss2",Formula1.c_str(),-0.4,0.4);
-        gauss2->SetParameters(double_gauss->GetParameter(0)*double_gauss->GetParameter(3),double_gauss->GetParameter(1)+abs(double_gauss->GetParameter(4)),double_gauss->GetParameter(5));
+        //gauss2->SetParameters(double_gauss->GetParameter(0)*double_gauss->GetParameter(3),double_gauss->GetParameter(1)+abs(double_gauss->GetParameter(4)),double_gauss->GetParameter(5));
+        gauss2->SetParameters(double_gauss->GetParameter(0)*double_gauss->GetParameter(3),double_gauss->GetParameter(4),double_gauss->GetParameter(5));
         gauss2->SetLineColor(kBlue);
         gauss2->SetLineStyle(9);
         gauss2->Draw("SAME");
@@ -552,7 +618,7 @@ void garana::l2g_Trackmatch()
 
         TCanvas *mccanvas_param1p = new TCanvas("mccanvas_param1p","",1000,800);
         TH1D* hpSlices1=(TH1D*) pSlices.At(1);
-        hpSlices1->SetMinimum(-0.025);
+        hpSlices1->SetMinimum(-0.03);
         hpSlices1->SetMaximum(0.0);
         hpSlices1->Draw();
         if (edge) mccanvas_param1p->Print("Edge/pslices_1_edge.png");
@@ -569,14 +635,14 @@ void garana::l2g_Trackmatch()
         TCanvas *mccanvas_param3p = new TCanvas("mccanvas_param3p","",1000,800);
         TH1D* hpSlices3=(TH1D*) pSlices.At(3);
         hpSlices3->SetMinimum(0.12);
-        hpSlices3->SetMaximum(0.32);
+        hpSlices3->SetMaximum(0.86);
         hpSlices3->Draw();
         if (edge) mccanvas_param3p->Print("Edge/pslices_3_edge.png");
         else  mccanvas_param3p->Print("Standard/pslices_3.png");
 
         TCanvas *mccanvas_param4p = new TCanvas("mccanvas_param4p","",1000,800);
         TH1D* hpSlices4=(TH1D*) pSlices.At(4);
-        hpSlices4->SetMinimum(-0.001);
+        hpSlices4->SetMinimum(-0.17);
         hpSlices4->SetMaximum(0.012);
         hpSlices4->Draw();
         if (edge) mccanvas_param4p->Print("Edge/pslices_4_edge.png");
@@ -585,7 +651,7 @@ void garana::l2g_Trackmatch()
         TCanvas *mccanvas_param5p = new TCanvas("mccanvas_param5p","",1000,800);
         TH1D* hpSlices5=(TH1D*) pSlices.At(5);
         hpSlices5->SetMinimum(0.03);
-        hpSlices5->SetMaximum(0.11);
+        hpSlices5->SetMaximum(0.13);
         hpSlices5->Draw();
         if (edge) mccanvas_param5p->Print("Edge/pslices_5_edge.png");
         else  mccanvas_param5p->Print("Standard/pslices_5.png");
@@ -593,12 +659,13 @@ void garana::l2g_Trackmatch()
         TCanvas *mccanvas_paramchip = new TCanvas("mccanvas_paramchip","",1000,800);
         TH1D* hpSlices6=(TH1D*) pSlices.At(6);
         hpSlices6->SetMinimum(0);
-        hpSlices6->SetMaximum(55);
+        hpSlices6->SetMaximum(10);
         hpSlices6->Draw();
         if (edge) mccanvas_paramchip->Print("Edge/pslices_chi_edge.png");
         else  mccanvas_paramchip->Print("Standard/pslices_chi.png");
         
         /////////////////////////////////////////////////////////Fit evolution Fractional Residual in nhits slices
+        TF1 *InverseSqrt = new TF1("InverseSqrt","[0]*1/(sqrt(x))",6,11);
 
         TCanvas *mccanvas_param0nhits = new TCanvas("mccanvas_paramnhits","",1000,800);
         TH1D* hnhitsSlices0=(TH1D*) nhitsSlices.At(0);
@@ -618,6 +685,8 @@ void garana::l2g_Trackmatch()
 
         TCanvas *mccanvas_param2nhits = new TCanvas("mccanvas_param2nhits","",1000,800);
         TH1D* hnhitsSlices2=(TH1D*) nhitsSlices.At(2);
+        gStyle->SetOptFit(1);
+        hnhitsSlices2->Fit("InverseSqrt","Q","",6,11);    
         hnhitsSlices2->SetMinimum(0.01);
         hnhitsSlices2->SetMaximum(0.05);
         hnhitsSlices2->Draw();
@@ -627,14 +696,14 @@ void garana::l2g_Trackmatch()
         TCanvas *mccanvas_param3nhits = new TCanvas("mccanvas_param3nhits","",1000,800);
         TH1D* hnhitsSlices3=(TH1D*) nhitsSlices.At(3);
         hnhitsSlices3->SetMinimum(0);
-        hnhitsSlices3->SetMaximum(1);
+        hnhitsSlices3->SetMaximum(1.6);
         hnhitsSlices3->Draw();
         if (edge) mccanvas_param3nhits->Print("Edge/nhitsslices_3_edge.png");
         else  mccanvas_param3nhits->Print("Standard/nhitsslices_3.png");
 
         TCanvas *mccanvas_param4nhits = new TCanvas("mccanvas_param4nhits","",1000,800);
         TH1D* hnhitsSlices4=(TH1D*) nhitsSlices.At(4);
-        hnhitsSlices4->SetMinimum(0);
+        hnhitsSlices4->SetMinimum(-0.185);
         hnhitsSlices4->SetMaximum(0.015);
         hnhitsSlices4->Draw();
         if (edge) mccanvas_param4nhits->Print("Edge/nhitsslices_4_edge.png");
@@ -643,7 +712,8 @@ void garana::l2g_Trackmatch()
         TCanvas *mccanvas_param5nhits = new TCanvas("mccanvas_param5nhits","",1000,800);
         TH1D* hnhitsSlices5=(TH1D*) nhitsSlices.At(5);
         hnhitsSlices5->SetMinimum(0.05);
-        hnhitsSlices5->SetMaximum(0.4);
+        hnhitsSlices5->SetMaximum(0.3);
+        hnhitsSlices5->Fit("InverseSqrt","Q","",6,11);
         hnhitsSlices5->Draw();
         if (edge) mccanvas_param5nhits->Print("Edge/nhitsslices_5_edge.png");
         else  mccanvas_param5nhits->Print("Standard/nhitsslices_5.png");
@@ -651,7 +721,7 @@ void garana::l2g_Trackmatch()
         TCanvas *mccanvas_paramchinhits = new TCanvas("mccanvas_paramchinhits","",1000,800);
         TH1D* hnhitsSlices6=(TH1D*) nhitsSlices.At(6);
         hnhitsSlices6->SetMinimum(0);
-        hnhitsSlices6->SetMaximum(16);
+        hnhitsSlices6->SetMaximum(10);
         hnhitsSlices6->Draw();
         if (edge) mccanvas_paramchinhits->Print("Edge/nhitsslices_chi_edge.png");
         else  mccanvas_paramchinhits->Print("Standard/nhitsslices_chi.png");
@@ -692,8 +762,8 @@ void garana::l2g_Trackmatch()
 
         TCanvas *mccanvas_param4Theta = new TCanvas("mccanvas_param4Theta","",1000,800);
         TH1D* hThetaSlices4=(TH1D*) ThetaSlices.At(4);
-        hThetaSlices4->SetMinimum(-0.002);
-        hThetaSlices4->SetMaximum(0.013);
+        hThetaSlices4->SetMinimum(-0.17);
+        hThetaSlices4->SetMaximum(0.02);
         hThetaSlices4->Draw();
         if (edge) mccanvas_param4Theta->Print("Edge/Thetaslices_4_edge.png");
         else  mccanvas_param4Theta->Print("Standard/Thetaslices_4.png");
@@ -701,7 +771,7 @@ void garana::l2g_Trackmatch()
         TCanvas *mccanvas_param5Theta = new TCanvas("mccanvas_param5Theta","",1000,800);
         TH1D* hThetaSlices5=(TH1D*) ThetaSlices.At(5);
         hThetaSlices5->SetMinimum(0);
-        hThetaSlices5->SetMaximum(0.9);
+        hThetaSlices5->SetMaximum(0.2);
         hThetaSlices5->Draw();
         if (edge) mccanvas_param5Theta->Print("Edge/Thetaslices_5_edge.png");
         else  mccanvas_param5Theta->Print("Standard/Thetaslices_5.png");
@@ -709,7 +779,7 @@ void garana::l2g_Trackmatch()
         TCanvas *mccanvas_paramchiTheta = new TCanvas("mccanvas_paramchiTheta","",1000,800);
         TH1D* hThetaSlices6=(TH1D*) ThetaSlices.At(6);
         hThetaSlices6->SetMinimum(0);
-        hThetaSlices6->SetMaximum(23);
+        hThetaSlices6->SetMaximum(13);
         hThetaSlices6->Draw();
         if (edge) mccanvas_paramchiTheta->Print("Edge/Thetaslices_chi_edge.png");
         else  mccanvas_paramchiTheta->Print("Standard/Thetaslices_chi.png");
