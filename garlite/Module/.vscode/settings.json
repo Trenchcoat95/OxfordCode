@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "l2g_trackmatch_t.C": "cpp",
+        "array": "cpp",
+        "string_view": "cpp"
+    }
+}

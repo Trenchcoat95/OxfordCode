@@ -24,6 +24,7 @@
 #include "TMath.h"
 #include "TVector3.h"
 #include "TF1.h"
+#include "TStopwatch.h"
 
 #include "Geant4/G4ThreeVector.hh"
 #include "nug4/MagneticFieldServices/MagneticFieldService.h"
@@ -208,7 +209,7 @@ namespace gar {
             }
         }
             
-        bool debug=1;
+        bool debug=0;
         if (true)
         {
 
@@ -282,6 +283,8 @@ namespace gar {
             
             int done= 0;
                 
+            TStopwatch timer;
+            timer.Start();
             while (done==0)
             {
                 size_t bestnpts = 0;
@@ -292,23 +295,35 @@ namespace gar {
                 {
                 for (size_t it : unusedTPCplanes.at(i))
                 {
-                    const float *ipos = TPCClusterCol->at(it).Position();
+                    //const float *ipos = TPCClusterCol->at(it).Position();
                     for (size_t j=i+1; j<unusedTPCplanes.size(); ++j)
                     {
                     for (size_t jt : unusedTPCplanes.at(j))
                     {   
-                        const float *jpos = TPCClusterCol->at(jt).Position();
-                        if (TMath::Abs( ipos[2] - jpos[2] ) < fZCut1) continue;
+                        //const float *jpos = TPCClusterCol->at(jt).Position();
+                        //if (TMath::Abs( ipos[2] - jpos[2] ) < fZCut1) continue;
                         for (size_t k=j+1; k<unusedTPCplanes.size(); ++k)
                         {
                         for (size_t kt : unusedTPCplanes.at(k))
                         {
-                            const float *kpos = TPCClusterCol->at(kt).Position();
-                            if (TMath::Abs( ipos[2] - kpos[2] ) < fZCut1) continue;
+
+                        for (size_t m=k+1; m<unusedTPCplanes.size(); ++m)
+                        {
+                        for (size_t mt : unusedTPCplanes.at(m))
+                        {
+
+                        for (size_t o=m+1; o<unusedTPCplanes.size(); ++o)
+                        {
+                        for (size_t ot : unusedTPCplanes.at(o))
+                        {
+                            //const float *kpos = TPCClusterCol->at(kt).Position();
+                            //if (TMath::Abs( ipos[2] - kpos[2] ) < fZCut1) continue;
                             std::vector<gar::rec::TPCCluster> triplet;
                             triplet.push_back(TPCClusterCol->at(it));
                             triplet.push_back(TPCClusterCol->at(jt));
                             triplet.push_back(TPCClusterCol->at(kt));
+                            triplet.push_back(TPCClusterCol->at(mt));
+                            triplet.push_back(TPCClusterCol->at(ot));
                             gar::rec::TrackPar triplettrack;
                             makepatrectrack(triplet,triplettrack);
 
@@ -369,6 +384,12 @@ namespace gar {
                             }
                         } // end loop over k in triplet
                         }
+
+                        }
+                        }
+
+                        }
+                        }
                     } // end loop over j in triplet
                     }
                 } // end loop over i in triplet
@@ -382,6 +403,7 @@ namespace gar {
                       unusedTPCplanes.at(j).remove(besttpcclusindex.at(i));
                    }
                 }
+                
                 
                 if (debug)
                 {  
@@ -423,13 +445,20 @@ namespace gar {
 
               
             }
+            timer.Stop();
+
+            std::ofstream outfile;
+
+            outfile.open("time_quintuplet.txt", std::ios_base::app); // append instead of overwrite
+            outfile << ntpcclus << "  " << timer.RealTime() << "\n"; 
 
         }
-
+            //if(trkCol->size()>0) std::cout<<"Chi2B: "<<trkCol->at(0).ChisqBackward()<<std::endl;
             if(debug) std::cout<<"Found this many tracks: "<<trkCol->size()<<std::endl<<std::endl<<std::endl;
             e.put(std::move(trkCol));
             e.put(std::move(TPCClusterCol));
             e.put(std::move(TPCClusterTrkAssns));
+
         }
 
         // digitize the plane hits based on minerva numbers

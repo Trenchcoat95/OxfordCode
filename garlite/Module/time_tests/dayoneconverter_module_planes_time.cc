@@ -24,6 +24,7 @@
 #include "TMath.h"
 #include "TVector3.h"
 #include "TF1.h"
+#include "TStopwatch.h"
 
 #include "Geant4/G4ThreeVector.hh"
 #include "nug4/MagneticFieldServices/MagneticFieldService.h"
@@ -137,27 +138,55 @@ namespace gar {
 
         void dayoneconverter::produce(art::Event& e)
         {
-            // Implementation of required member function here.
-            std::unique_ptr< std::vector<gar::rec::TPCCluster> > TPCClusterCol(new std::vector<gar::rec::TPCCluster>);
-            std::unique_ptr< std::vector<gar::rec::Track> > trkCol(new std::vector<gar::rec::Track>);
-            std::unique_ptr< art::Assns<gar::rec::TPCCluster,gar::rec::Track> > TPCClusterTrkAssns(new ::art::Assns<gar::rec::TPCCluster,gar::rec::Track>);
+        // Implementation of required member function here.
+        std::unique_ptr< std::vector<gar::rec::TPCCluster> > TPCClusterCol(new std::vector<gar::rec::TPCCluster>);
+        std::unique_ptr< std::vector<gar::rec::Track> > trkCol(new std::vector<gar::rec::Track>);
+        std::unique_ptr< art::Assns<gar::rec::TPCCluster,gar::rec::Track> > TPCClusterTrkAssns(new ::art::Assns<gar::rec::TPCCluster,gar::rec::Track>);
 
-            art::InputTag tpcedeptag(fInputEdepLabel,fInputEdepInstanceTPC);
-            auto tccdHandle = e.getValidHandle< std::vector<gar::sdp::CaloDeposit> >(tpcedeptag);
-            auto const& tccds = *tccdHandle;
+        art::InputTag tpcedeptag(fInputEdepLabel,fInputEdepInstanceTPC);
+        auto tccdHandle = e.getValidHandle< std::vector<gar::sdp::CaloDeposit> >(tpcedeptag);
+        auto const& tccds = *tccdHandle;
 
-            // put these back when we have tracks and can associate them
-            auto const trackPtrMaker = art::PtrMaker<gar::rec::Track>(e);
-            auto const tpcclusPtrMaker = art::PtrMaker<gar::rec::TPCCluster>(e);
+        // put these back when we have tracks and can associate them
+        auto const trackPtrMaker = art::PtrMaker<gar::rec::Track>(e);
+        auto const tpcclusPtrMaker = art::PtrMaker<gar::rec::TPCCluster>(e);
 
-            auto const *magFieldService = gar::providerFrom<mag::MagneticFieldService>();
-            G4ThreeVector zerovec(0,0,0);
-            G4ThreeVector magfield = magFieldService->FieldAtPoint(zerovec);
+        auto const *magFieldService = gar::providerFrom<mag::MagneticFieldService>();
+        G4ThreeVector zerovec(0,0,0);
+        G4ThreeVector magfield = magFieldService->FieldAtPoint(zerovec);
 
-            // first stab, just make all the TPC clusters in the event, and then worry later
-            // about pattern recognition
+        // first stab, just make all the TPC clusters in the event, and then worry later
+        // about pattern recognition
 
-            for (auto const& cd : tccds)
+        for (auto const& cd : tccds)
+        {
+            float energy = 0.;
+            float time = 0.;
+            float fcpos[3] = {0., 0., 0.};
+
+            // this->digitizeCaloHitsSimple(cd, fcpos, energy, time);
+            this->digitizeCaloHitsMu2e(cd, fcpos, energy, time);
+
+            float covmat[6] = {0,0,0,0,0,0};  // TODO -- fill this in with something reasonble
+
+            if(energy <= 0.) continue;
+
+            TPCClusterCol->emplace_back(energy,
+            fcpos,
+            time,     // time is in ns
+            time,
+            time,
+            fSmearX,
+            covmat);
+        }
+
+        if(fIncludeMuIDhits)
+        {
+            art::InputTag muidedeptag(fInputEdepLabel,fInputEdepInstanceMuID);
+            auto muIDHandle = e.getValidHandle< std::vector<gar::sdp::CaloDeposit> >(muidedeptag);
+            auto const& muids = *muIDHandle;
+
+            for (auto const& cd : muids)
             {
                 float energy = 0.;
                 float time = 0.;
@@ -166,9 +195,9 @@ namespace gar {
                 // this->digitizeCaloHitsSimple(cd, fcpos, energy, time);
                 this->digitizeCaloHitsMu2e(cd, fcpos, energy, time);
 
-                float covmat[6] = {0,0,0,0,0,0};  // TODO -- fill this in with something reasonble
-
                 if(energy <= 0.) continue;
+
+                float covmat[6] = {0,0,0,0,0,0};  // TODO -- fill this in with something reasonble
 
                 TPCClusterCol->emplace_back(energy,
                 fcpos,
@@ -178,89 +207,111 @@ namespace gar {
                 fSmearX,
                 covmat);
             }
+        }
+            
+        bool debug=0;
+        if (true)
+        {
 
-            if(fIncludeMuIDhits)
+            // sort the TPC Clusters along Z
+            
+
+            std::sort(TPCClusterCol->begin(),TPCClusterCol->end(),
+            [](const gar::rec::TPCCluster &a, const gar::rec::TPCCluster &b)->bool
+            { return a.Position()[2] < b.Position()[2]; } );
+
+            size_t ntpcclus = TPCClusterCol->size();
+
+            // look for best-fit tracks in the list of TPC clusters
+            // find the best triplet of TPC Clusters with spacing at least fZCut that fit on a circle
+            // to think about -- time and energy cuts
+
+            
+            //create list of unused TPC clusters: a total one, and one for each plane
+            
+            std::list<size_t> unusedTPC;
+            std::list<size_t> TPCplane;
+            std::vector<std::list<size_t>> unusedTPCplanes;
+            float startz= 0;
+            if (ntpcclus!=0)
             {
-                art::InputTag muidedeptag(fInputEdepLabel,fInputEdepInstanceMuID);
-                auto muIDHandle = e.getValidHandle< std::vector<gar::sdp::CaloDeposit> >(muidedeptag);
-                auto const& muids = *muIDHandle;
-
-                for (auto const& cd : muids)
+                startz=TPCClusterCol->at(0).Position()[2];
+                for(size_t i=0; i<ntpcclus; i++)
                 {
-                    float energy = 0.;
-                    float time = 0.;
-                    float fcpos[3] = {0., 0., 0.};
-
-                    // this->digitizeCaloHitsSimple(cd, fcpos, energy, time);
-                    this->digitizeCaloHitsMu2e(cd, fcpos, energy, time);
-
-                    if(energy <= 0.) continue;
-
-                    float covmat[6] = {0,0,0,0,0,0};  // TODO -- fill this in with something reasonble
-
-                    TPCClusterCol->emplace_back(energy,
-                    fcpos,
-                    time,     // time is in ns
-                    time,
-                    time,
-                    fSmearX,
-                    covmat);
+                    unusedTPC.push_back(i);
+                    
+                    if(TPCClusterCol->at(i).Position()[2]-startz<=4)
+                    {
+                        TPCplane.push_back(i);
+                    }
+                    else
+                    {
+                        unusedTPCplanes.push_back(TPCplane);
+                        startz=TPCClusterCol->at(i).Position()[2];
+                        TPCplane.clear();     
+                        TPCplane.push_back(i);             
+                    }
+                    
                 }
+
+                if(TPCplane.size()!=0) unusedTPCplanes.push_back(TPCplane);
+            }
+            else
+            {
+              for(size_t i=0; i<ntpcclus; i++)
+                {
+                    unusedTPC.push_back(i);
+                }  
+            }
+
+            if(debug){
+            std::cout << "l = { ";
+            for (size_t n : unusedTPC) {
+            std::cout << TPCClusterCol->at(n).Position()[2] << ", ";
+            }
+            std::cout << "};\n";
+
+            for(size_t c=0; c<unusedTPCplanes.size(); c++)
+            {
+            std::cout << "l"<<c<<" = { ";
+                for (size_t n : unusedTPCplanes.at(c)) {
+                std::cout << TPCClusterCol->at(n).Position()[2] << ", ";
+                }
+            std::cout << "};\n";
+            }
             }
             
-            bool debug=0;
-            if (true)
+            int done= 0;
+                
+            TStopwatch timer;
+            timer.Start();
+            while (done==0)
             {
-
-                // sort the TPC Clusters along Z
-                
-
-                std::sort(TPCClusterCol->begin(),TPCClusterCol->end(),
-                [](const gar::rec::TPCCluster &a, const gar::rec::TPCCluster &b)->bool
-                { return a.Position()[2] < b.Position()[2]; } );
-
-                size_t ntpcclus = TPCClusterCol->size();
-
-                // look for best-fit tracks in the list of TPC clusters
-                // find the best triplet of TPC Clusters with spacing at least fZCut that fit on a circle
-                // to think about -- time and energy cuts
-
-                //size_t bestnpts = 0;
-                //float bestsumr2 = 0;
-                //std::vector<size_t> besttpcclusindex;
-                //gar::rec::Track besttrack;
-
-                std::vector<bool> usedtpcclus;
-                for (size_t x=0; x<ntpcclus; ++x) {usedtpcclus.push_back(0);}
-                int done= 0;
-                int besti=0;
-                int bestj=0;
-                int bestk=0;
-                
-                while (done==0){
                 size_t bestnpts = 0;
                 float bestsumr2 = 0;
                 std::vector<size_t> besttpcclusindex;
-                gar::rec::Track besttrack;
-
-                for (size_t i=0; i<ntpcclus; ++i)
+            
+                for (size_t i=0; i<unusedTPCplanes.size(); ++i)
                 {
-                    if (usedtpcclus.at(i)==1) continue;
-                    const float *ipos = TPCClusterCol->at(i).Position();
-                    for (size_t j=i+1; j<ntpcclus; ++j)
+                for (size_t it : unusedTPCplanes.at(i))
+                {
+                    const float *ipos = TPCClusterCol->at(it).Position();
+                    for (size_t j=i+1; j<unusedTPCplanes.size(); ++j)
                     {
-                        if (usedtpcclus.at(j)==1) continue;
-                        const float *jpos = TPCClusterCol->at(j).Position();
+                    for (size_t jt : unusedTPCplanes.at(j))
+                    {   
+                        const float *jpos = TPCClusterCol->at(jt).Position();
                         if (TMath::Abs( ipos[2] - jpos[2] ) < fZCut1) continue;
-                        for (size_t k=j+1; k<ntpcclus; ++k)
+                        for (size_t k=j+1; k<unusedTPCplanes.size(); ++k)
                         {
-                            if (usedtpcclus.at(k)==1) continue;
-                            const float *kpos = TPCClusterCol->at(k).Position();
+                        for (size_t kt : unusedTPCplanes.at(k))
+                        {
+                            const float *kpos = TPCClusterCol->at(kt).Position();
                             if (TMath::Abs( ipos[2] - kpos[2] ) < fZCut1) continue;
                             std::vector<gar::rec::TPCCluster> triplet;
-                            triplet.push_back(TPCClusterCol->at(i));
-                            triplet.push_back(TPCClusterCol->at(j));
-                            triplet.push_back(TPCClusterCol->at(k));
+                            triplet.push_back(TPCClusterCol->at(it));
+                            triplet.push_back(TPCClusterCol->at(jt));
+                            triplet.push_back(TPCClusterCol->at(kt));
                             gar::rec::TrackPar triplettrack;
                             makepatrectrack(triplet,triplettrack);
 
@@ -273,11 +324,11 @@ namespace gar {
                             int tpcclusindexb = -1;
                             float dbest=1E9;
                             gar::rec::Track tpt;
+                            gar::rec::TPCCluster tpcclusb;
 
-                            for (size_t k2=0; k2<ntpcclus; ++k2)
+                            for (size_t kt2 : unusedTPC)
                             {
-                                if (usedtpcclus.at(k2)==1) continue;
-                                const float *k2pos = TPCClusterCol->at(k2).Position();
+                                const float *k2pos = TPCClusterCol->at(kt2).Position();
 
                                 // clusters are sorted along Z.  If we found a new Z, put the best point on the list
 
@@ -286,6 +337,7 @@ namespace gar {
                                 (dbest < fRCut) )
                                 {
                                     tpcclusindex.push_back(tpcclusindexb);
+                                    //TPCtrial.push_back(tpcclusb);
                                     sumr2 += dbest*dbest;
                                     dbest = 1E9;
                                     tpcclusindexb = -1;
@@ -300,15 +352,15 @@ namespace gar {
                                 if (dist<dbest)
                                 {
                                     dbest = dist;
-                                    tpcclusindexb = k2;
+                                    tpcclusindexb = kt2;
                                 }
                                 // last point -- check to see if it gets added.
-                                if (k2 == ntpcclus-1 && tpcclusindexb > -1)
+                                if (kt2 == *std::prev(unusedTPC.end(),1) && tpcclusindexb > -1)
                                 {
                                     tpcclusindex.push_back(tpcclusindexb);
                                     sumr2 += dbest*dbest;
                                 }
-                            }  // end loop over k2 -- assigning clusters to this track
+                            }  // end loop over kt2 -- assigning clusters to this track
 
                             if (tpcclusindex.size() > bestnpts ||
                             ((tpcclusindex.size() == bestnpts) &&
@@ -317,45 +369,37 @@ namespace gar {
                                 bestnpts = tpcclusindex.size();
                                 bestsumr2 = sumr2;
                                 besttpcclusindex = tpcclusindex;
-                                besttrack = tpt;
-                                besti=i;
-                                bestj=j;
-                                bestk=k;
                             }
                         } // end loop over k in triplet
+                        }
                     } // end loop over j in triplet
-               } // end loop over i in triplet
-               
-                for (size_t x=0; x<ntpcclus; ++x){
-                for (size_t a = 0; a < besttpcclusindex.size(); a++) {
-                     if(x==besttpcclusindex.at(a)) usedtpcclus[x]=1;
-                     }
+                    }
+                } // end loop over i in triplet
                 }
+
+                for(size_t i=0;i<bestnpts;i++)
+                {
+                   unusedTPC.remove(besttpcclusindex.at(i));
+                   for(size_t j=0;j<unusedTPCplanes.size();j++)
+                   {
+                      unusedTPCplanes.at(j).remove(besttpcclusindex.at(i));
+                   }
+                }
+                
                 
                 if (debug)
                 {  
-                	std::cout<<"ntpcclus: "<<ntpcclus<<std::endl;
                 	std::cout<<"bestnpts: "<<bestnpts<<std::endl;
-                	std::cout<<"best (i,j,k): "<<besti<<" "<<bestj<<" "<<bestk<<std::endl;
-                	std::cout<<"tpcclusindex: ";
-                	for (long unsigned int a = 0; a < besttpcclusindex.size(); a++) {
-                	std::cout << besttpcclusindex.at(a) << " ";
-                	}
-                	std::cout << std::endl;
-
-                	std::cout<<"usedtpcclus: ";
-                	for (long unsigned int a = 0; a < usedtpcclus.size(); a++) {
-                	std::cout << usedtpcclus.at(a) << " ";
-                	}
-                	std::cout << std::endl;
-                        std::cout<<"Chi2: "<<besttrack.ChisqForward()<<" "<<besttrack.ChisqBackward()<<std::endl<<std::endl;
+                    for(size_t j=0;j<unusedTPCplanes.size();j++)
+                        {
+                            std::cout<<"unusedTPCplane"<<j<<" : "<<unusedTPCplanes.at(j).size()<<std::endl;
+                        }
+                    std::cout<<"unusedTPC: "<<unusedTPC.size()<<std::endl<<std::endl;
                 }
-                // so far we can only make one track.  Look at other points in collection not yet used and make more tracks
 
                 if (bestnpts > 0)
                 {
-                    // "besttrack" above only has track parameters from the triplet.  make a new track from
-                    // all the TPC clusters
+                    // make track from all the TPC clusters
                     //trkCol->push_back(besttrack);
                     std::vector<gar::rec::TPCCluster> tcv;
                     for (size_t i=0;i<besttpcclusindex.size(); ++i)
@@ -378,18 +422,25 @@ namespace gar {
                 else
                 {
                   done= 1;
-                  std::cout<<"Not able to find a new track, stop cycle, done="<<done<<std::endl;
+                  if (debug) std::cout<<"Not able to find a new track, stop cycle, done="<<done<<std::endl;
                 }
 
               
-              }
-
             }
+            timer.Stop();
 
+            std::ofstream outfile;
+
+            outfile.open("time.txt", std::ios_base::app); // append instead of overwrite
+            outfile << ntpcclus << "  " << timer.RealTime() << "\n"; 
+
+        }
+            //if(trkCol->size()>0) std::cout<<"Chi2B: "<<trkCol->at(0).ChisqBackward()<<std::endl;
             if(debug) std::cout<<"Found this many tracks: "<<trkCol->size()<<std::endl<<std::endl<<std::endl;
             e.put(std::move(trkCol));
             e.put(std::move(TPCClusterCol));
             e.put(std::move(TPCClusterTrkAssns));
+
         }
 
         // digitize the plane hits based on minerva numbers
