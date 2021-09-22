@@ -29,6 +29,8 @@ if(n==3) h="time.txt";
 if(n==4) h="time_quadruplet.txt";
 if(n==5) h="time_quintuplet.txt";
 if(n==6) h="time_doublet.txt";
+if(n==7) h="time_timedivision_planes_ev3.txt";
+if(n==8) h="time_timedivision_planes0.txt";
 
 TGraph *MyGraph = new TGraph(h);
 TGraph *MyGraphlog = new TGraph;
@@ -44,7 +46,7 @@ TF1 *fa2 = new TF1("fa2","[0]*x+[1]",0,100);
 
 if(n==5) fa2->SetParameters(5,-15); //quintuplets
 if(n==4) fa2->SetParameters(5,-15); //quadruplets
-if(n<=3) fa2->SetParameters(5,-15); //triplets
+if(n<=3 || n==7) fa2->SetParameters(5,-15); //triplets
 
 MyGraphlog->Fit("fa2","","",0.5,100);
 
@@ -56,6 +58,8 @@ if(n==3) MyGraphlog->SetTitle("Process Time (Triplet);log(nTPCpoints);log(time) 
 if(n==4) MyGraphlog->SetTitle("Process Time (Quadruplet);log(nTPCpoints);log(time) [s]");
 if(n==5) MyGraphlog->SetTitle("Process Time (Quintuplet);log(nTPCpoints);log(time) [s]");
 if(n==6) MyGraphlog->SetTitle("Process Time (Doublets);log(nTPCpoints);log(time) [s]");
+if(n==7) MyGraphlog->SetTitle("Process Time (Time bunches);log(nTPCpoints(bunch));log(time) [s]");
+if(n==8) MyGraphlog->SetTitle("Process Time (Time bunches tot);log(nTPCpoints(tot));log(time) [s]");
 
 gStyle->SetStatX(0.5);
 gStyle->SetStatY(0.9);
@@ -73,6 +77,19 @@ if (n==3) save="./Plots/log_timetriplet";
 if (n==4) save="./Plots/log_timequadruplet";
 if (n==5) save="./Plots/log_timequintuplet";
 if (n==6) save="./Plots/log_timedoublet";
+if (n==7) save="./Plots/log_timebunches";
+if (n==8) save="./Plots/log_timebunches_tot";
+
+if(n==7)
+{
+    Float_t sum=0;
+    for (Int_t i=0; i<MyGraph->GetN() ;i++)
+    {
+      sum+=MyGraph->GetPointY(i);
+    }
+    std::cout<<"sum: "<<sum<<std::endl;
+
+}
 
 
 save+=".png";

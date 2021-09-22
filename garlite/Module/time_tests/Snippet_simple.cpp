@@ -76,4 +76,21 @@ void Snippet_simple()
    gStyle->SetStatY(0.9);
    c02->Print("./Plots/log_Testb.png");
 
+   auto c03 = new TCanvas("c03","A Simple Graph with error bars",200,10,700,500);
+   const Int_t n3 = 3;
+   Double_t x3[n3]  = {1.31414,6.65808,0.863751};
+   Double_t y3[n3]  = {1.3475,6.67582,0.87728};
+   auto gr3 = new TGraph(n3,x3,y3);
+   gr3->SetTitle("Total time evolution;#sumt_{bunch}[s];t[s]");
+   gr3->SetMarkerColor(4);
+   gr3->SetMarkerStyle(21);
+   gr3->Draw("AP");
+   TF1 *fa33 = new TF1("fa33","[a]*x+[b]",0,100);
+   //fa22->SetParameters(-2,1);
+   gr3->Fit(fa33);
+   gStyle->SetStatX(0.5);
+   gStyle->SetStatY(0.9);
+   c03->Print("./Plots/tVSsumtbunch.png");
+
+
 }

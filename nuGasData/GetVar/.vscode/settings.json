@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "GetVar.C": "cpp"
+        "GetVar.C": "cpp",
+        "fastCal.C": "cpp",
+        "rootlogon.C": "cpp",
+        "example.C": "cpp"
     }
 }
