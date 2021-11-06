@@ -1,6 +1,6 @@
 #include "TGraph2D.h"
 #include "TGraph.h"
-#include "l2g_trackmatch_t.C"
+#include "l2g_trackmatch_t2.C"
 
 //   In a ROOT session, you can do:
   //      root> .L Plane_Eloss.C
@@ -162,9 +162,14 @@ void garana::Plane_Eloss()
         TH2F* h_pcontactVScostheta = new TH2F("h_pcontactVScostheta ","pcontactVScostheta",50, 0, 1, 50, 0, 8);
         TH2F* h_deltapVScostheta = new TH2F("h_deltapVScostheta ","deltapVScostheta",50, 0, 1, 50, 0, 0.04);
         TH2F* h_deltapVSpcontact = new TH2F("h_deltapVSpcontact ","deltapVSpcontact",50, 0, 4, 50, 0, 0.04);
-
+        TH2F* h_deltaEVScostheta = new TH2F("h_deltaEVScostheta ","deltapVScostheta",50, 0, 1, 50, 0, 0.1);
+        TH2F* h_deltaEexpVScostheta = new TH2F("h_deltaEexpVScostheta ","deltapVScostheta",50, 0, 1, 50, 0, 0.1);
+       
         TH2F* P_deltapVScostheta = new TH2F("P_deltapVScostheta ","deltapVScostheta",50, 0, 1, 50, 0, 0.04);
         TH2F* P_deltapVSpcontact = new TH2F("P_deltapVSpcontact ","deltapVSpcontact",50, 0, 4, 50, 0, 0.04);
+        TH2F* P_deltaEVScostheta = new TH2F("P_deltaEVScostheta ","deltapVScostheta",50, 0, 1, 50, 0, 0.1);
+        TH2F* P_deltaEexpVScostheta = new TH2F("P_deltaEexpVScostheta ","deltapVScostheta",50, 0, 1, 50, 0, 0.1);
+       
 
         TGraph* g_deltapVScostheta = new TGraph;
         TGraph* g_deltapVSpcontact = new TGraph;
@@ -296,6 +301,9 @@ void garana::Plane_Eloss()
                     h_deltapVScostheta->Fill(costheta,deltap);
                     h_deltapVSpcontact->Fill(p_contact,deltap);
 
+                    h_deltaEVScostheta->Fill(costheta,deltaE*costheta);
+                    h_deltaEexpVScostheta->Fill(costheta,deltaEBetheG*costheta);
+
                     if(costheta<=1&&costheta>=0&&deltap<=0.3&&deltap>=0.0&&p_contact>=0&&p_contact<=8)
                     {
                     g_deltapVScosthetaVSpcontact->SetPoint(pp,p_contact,costheta,deltap);
@@ -318,6 +326,10 @@ void garana::Plane_Eloss()
 
     GetProbabilityPlot(h_deltapVSpcontact,P_deltapVSpcontact);
     GetProbabilityPlot(h_deltapVScostheta,P_deltapVScostheta);
+
+    GetProbabilityPlot(h_deltaEVScostheta,P_deltaEVScostheta);
+    GetProbabilityPlot(h_deltaEexpVScostheta,P_deltaEexpVScostheta);
+  
 
     std::string Formula = "abs(0.39894228040143*"+std::to_string(h_deltap->GetBinWidth(0))+"*([0]/([2]*x))*(exp(-0.5*((log(x)-[1])/[2])^2)))";
     TF1 *LogNormal = new TF1("LogNormal",Formula.c_str(),0.0,0.3);
@@ -408,6 +420,18 @@ void garana::Plane_Eloss()
         h_deltapVSpcontact->Draw("COLZ");
         mccanvasdeltapVSp->Print("E_loss/deltapVSpcontact.png");
 
+        TCanvas *mccanvasdeltaEVScos = new TCanvas("mccanvasdeltaEVScos","",1000,800);
+        h_deltaEVScostheta->SetTitle("Energy loss as function times cos#theta of cos#theta;cos#theta;#Delta E #times cos#theta[GeV/c^{2}]");
+        h_deltaEVScostheta->Draw("COLZ");
+        mccanvasdeltaEVScos->Print("E_loss/deltaEVScos.png");
+
+         TCanvas *mccanvasdeltaEexpVScos = new TCanvas("mccanvasdeltaEexpVScos","",1000,800);
+        h_deltaEexpVScostheta->SetTitle("Expected energy loss times cos#theta as function of cos#theta;cos#theta;#Delta E #times cos#theta[GeV/c^{2}]");
+        h_deltaEexpVScostheta->Draw("COLZ");
+        mccanvasdeltaEexpVScos->Print("E_loss/deltaEexpVScos.png");
+
+
+
         ///////////////////////////////////////////////2D distributions XYZ
 
         TCanvas *mccanvasXY = new TCanvas("mccanvasXY","",1000,800);
@@ -443,6 +467,16 @@ void garana::Plane_Eloss()
         P_deltapVSpcontact->SetTitle("P(#Deltap|p);p_{cont} [GeV/c];#Delta p [GeV/c]");
         P_deltapVSpcontact->Draw("COLZ");
         mccanvasdeltapVSpP->Print("E_loss/PdeltapVSpcontact.png");
+
+        TCanvas *PmccanvasdeltaEVScos = new TCanvas("PmccanvasdeltaEVScos","",1000,800);
+        P_deltaEVScostheta->SetTitle("P(#DeltaE*cos#theta|cos#theta);cos#theta;#Delta E #times cos#theta[GeV/c^{2}]");
+        P_deltaEVScostheta->Draw("COLZ");
+        PmccanvasdeltaEVScos->Print("E_loss/PdeltaEVScos.png");
+
+         TCanvas *PmccanvasdeltaEexpVScos = new TCanvas("PmccanvasdeltaEexpVScos","",1000,800);
+        P_deltaEexpVScostheta->SetTitle("P(#DeltaE_{exp}*cos#theta|cos#theta);cos#theta;#Delta E_{exp} #times cos#theta[GeV/c^{2}]");
+        P_deltaEexpVScostheta->Draw("COLZ");
+        PmccanvasdeltaEVScos->Print("E_loss/PdeltaEexpVScos.png");
 
 
         ///////////////////////////////////////////////TGraphs 

@@ -69,7 +69,9 @@
         "l2g_toy.C": "cpp",
         "l2g_trackmatch_spill.C": "cpp",
         "l2g_trackmatch_spill_Eloss.C": "cpp",
-        "Plane_Eloss.C": "cpp"
+        "Plane_Eloss.C": "cpp",
+        "l2g_trackmatch_t2.C": "cpp",
+        "Plane_Eloss_trackmatch.C": "cpp"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

@@ -12,6 +12,7 @@
 #include <TTree.h>
 #include <TVectorF.h>
 #include <TMatrix.h>
+#include <TGraph2D.h>
 
 void kalana::Loop(std::string folder,std::string  sm,std::string  R)
 {

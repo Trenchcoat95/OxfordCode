@@ -11,6 +11,7 @@
 
 // ROOT includes
 
+#include <iostream>
 #include "TVectorF.h"
 #include "TMatrix.h"
 #include "TMath.h"
@@ -18,6 +19,8 @@
 #include "TGraphErrors.h"
 #include "TFile.h"
 #include "TTree.h"
+#include "TRandom.h"
+#include "TF2.h"
 
 
 

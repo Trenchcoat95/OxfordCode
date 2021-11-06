@@ -12,6 +12,9 @@
 #include <TTree.h>
 #include <TVectorF.h>
 #include <TMatrix.h>
+#include <TGraph.h>
+#include <TGraphErrors.h>
+#include <TLegend.h>
 #include "kalana.h"
 #include "kalLoop.h"
 #include "garana.h"

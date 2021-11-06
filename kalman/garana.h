@@ -9,6 +9,7 @@
 #include <TChain.h>
 #include <TFile.h>
 
+
 // Header file for the classes stored in the TTree if any.
 #include "vector"
 #include "vector"
@@ -24,49 +25,49 @@ public :
    Int_t           Event;
    Int_t           SubRun;
    Int_t           Run;
-   vector<int>     *NType;
-   vector<int>     *CCNC;
-   vector<int>     *PDG;
-   vector<float>   *MCPStartX;
-   vector<float>   *MCPStartY;
-   vector<float>   *MCPStartZ;
-   vector<float>   *MCPEndX;
-   vector<float>   *MCPEndY;
-   vector<float>   *MCPEndZ;
-   vector<float>   *MCPStartPX;
-   vector<float>   *MCPStartPY;
-   vector<float>   *MCPStartPZ;
-   vector<float>   *MCPEndPX;
-   vector<float>   *MCPEndPY;
-   vector<float>   *MCPEndPZ;
-   vector<float>   *TrajMCPX;
-   vector<float>   *TrajMCPY;
-   vector<float>   *TrajMCPZ;
-   vector<float>   *TrajMCPT;
-   vector<float>   *TrajMCPE;
-   vector<float>   *TrajMCPIndex;
-   vector<float>   *TrajMCPTrackID;
-   vector<float>   *TrajMCPPX;
-   vector<float>   *TrajMCPPY;
-   vector<float>   *TrajMCPPZ;
-   vector<float>   *TrackLenF;
-   vector<float>   *TrackLenB;
-   vector<float>   *TrackStartX;
-   vector<float>   *TrackStartY;
-   vector<float>   *TrackStartZ;
-   vector<float>   *TrackStartPX;
-   vector<float>   *TrackStartPY;
-   vector<float>   *TrackStartPZ;
-   vector<float>   *TrackEndX;
-   vector<float>   *TrackEndY;
-   vector<float>   *TrackEndZ;
-   vector<float>   *TrackEndPX;
-   vector<float>   *TrackEndPY;
-   vector<float>   *TrackEndPZ;
-   vector<float>   *VertX;
-   vector<float>   *VertY;
-   vector<float>   *VertZ;
-   vector<int>     *VertN;
+   std::vector<int>     *NType;
+   std::vector<int>     *CCNC;
+   std::vector<int>     *PDG;
+   std::vector<float>   *MCPStartX;
+   std::vector<float>   *MCPStartY;
+   std::vector<float>   *MCPStartZ;
+   std::vector<float>   *MCPEndX;
+   std::vector<float>   *MCPEndY;
+   std::vector<float>   *MCPEndZ;
+   std::vector<float>   *MCPStartPX;
+   std::vector<float>   *MCPStartPY;
+   std::vector<float>   *MCPStartPZ;
+   std::vector<float>   *MCPEndPX;
+   std::vector<float>   *MCPEndPY;
+   std::vector<float>   *MCPEndPZ;
+   std::vector<float>   *TrajMCPX;
+   std::vector<float>   *TrajMCPY;
+   std::vector<float>   *TrajMCPZ;
+   std::vector<float>   *TrajMCPT;
+   std::vector<float>   *TrajMCPE;
+   std::vector<float>   *TrajMCPIndex;
+   std::vector<float>   *TrajMCPTrackID;
+   std::vector<float>   *TrajMCPPX;
+   std::vector<float>   *TrajMCPPY;
+   std::vector<float>   *TrajMCPPZ;
+   std::vector<float>   *TrackLenF;
+   std::vector<float>   *TrackLenB;
+   std::vector<float>   *TrackStartX;
+   std::vector<float>   *TrackStartY;
+   std::vector<float>   *TrackStartZ;
+   std::vector<float>   *TrackStartPX;
+   std::vector<float>   *TrackStartPY;
+   std::vector<float>   *TrackStartPZ;
+   std::vector<float>   *TrackEndX;
+   std::vector<float>   *TrackEndY;
+   std::vector<float>   *TrackEndZ;
+   std::vector<float>   *TrackEndPX;
+   std::vector<float>   *TrackEndPY;
+   std::vector<float>   *TrackEndPZ;
+   std::vector<float>   *VertX;
+   std::vector<float>   *VertY;
+   std::vector<float>   *VertZ;
+   std::vector<int>     *VertN;
 
    // List of branches
    TBranch        *b_Event;   //!
