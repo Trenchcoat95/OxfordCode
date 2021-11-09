@@ -24,10 +24,10 @@ using namespace ROOT::Math;
 
 
 
-float capprox(float x1,float y1,
-                        float x2,float y2,
-                        float x3,float y3,
-                        float &xc, float &yc)
+double capprox(double x1,double y1,
+                        double x2,double y2,
+                        double x3,double y3,
+                        double &xc, double &yc)
 {
   //-----------------------------------------------------------------
   // Initial approximation of the track curvature -- copied from ALICE
@@ -38,15 +38,15 @@ float capprox(float x1,float y1,
   y3 -=y1;
   y2 -=y1;
   //
-  float det = x3*y2-x2*y3;
+  double det = x3*y2-x2*y3;
   if (TMath::Abs(det)<1e-10){
     return 100;
   }
   //
-  float u = 0.5* (x2*(x2-x3)+y2*(y2-y3))/det;
-  float x0 = x3*0.5-y3*u;
-  float y0 = y3*0.5+x3*u;
-  float c2 = 1/TMath::Sqrt(x0*x0+y0*y0);
+  double u = 0.5* (x2*(x2-x3)+y2*(y2-y3))/det;
+  double x0 = x3*0.5-y3*u;
+  double y0 = y3*0.5+x3*u;
+  double c2 = 1/TMath::Sqrt(x0*x0+y0*y0);
   xc = x0 + x1;
   yc = y0 + y1;
   if (det<0) c2*=-1;
@@ -235,7 +235,7 @@ void ouchef(double *x, double *y, int np, double &xcirccent, double &ycirccent,
     }
 
   n  = npf;
-  rn = 1./((float) n);
+  rn = 1./((double) n);
   xm = 0.;
   ym = 0.;
   for (i=0;i<n;++i)
@@ -404,11 +404,11 @@ int Helix_Fit(const std::vector<XYZVector>  TPCClusters,
     }
 
   TPCClustersSeed.SetXYZ(trackbeg[0],trackbeg[1],trackbeg[2]);
-  float x_other_end = TPCClusters.at(lastTPCCluster).X();
+  double x_other_end = TPCClusters.at(lastTPCCluster).X();
 
 
-  float ycc=0;
-  float zcc=0;
+  double ycc=0;
+  double zcc=0;
   curvature_init = capprox(trackbeg[1],trackbeg[2],tp1[1],tp1[2],tp2[1],tp2[2],ycc,zcc);
   //std::cout << " inputs to trackpar circ fit (y,z): " << trackbeg[1] << " " << trackbeg[2] << " : "
   //        << tp1[1] << " " << tp1[2] << " : " << tp2[1] << " " << tp2[2] << std::endl;
@@ -444,15 +444,15 @@ int Helix_Fit(const std::vector<XYZVector>  TPCClusters,
 
 
   phi_init = TMath::ATan2( trackbeg[2] - zcc, ycc - trackbeg[1] );
-  float phi2 = phi_init;
+  double phi2 = phi_init;
   if (curvature_init<0) phi_init += TMath::Pi();
-  float radius_init = 10000;
+  double radius_init = 10000;
   if (curvature_init != 0) radius_init = 1.0/curvature_init;
 
-  float dx1 = tp2[0] - TPCClustersSeed.X();
+  double dx1 = tp2[0] - TPCClustersSeed.X();
   if (dx1 != 0)
     {
-      float dphi2 = TMath::ATan2(tp2[2]-zcc,ycc-tp2[1])-phi2;
+      double dphi2 = TMath::ATan2(tp2[2]-zcc,ycc-tp2[1])-phi2;
       if (dphi2 > TMath::Pi()) dphi2 -= 2.0*TMath::Pi();
       if (dphi2 < -TMath::Pi()) dphi2 += 2.0*TMath::Pi();
       lambda_init = TMath::ATan(1.0/((radius_init/dx1)*dphi2));
@@ -515,17 +515,29 @@ void KalmanFit(
       
       const Double_t kAlmost1=1. - Double_t(FLT_EPSILON);
       const Double_t kAlmost0=Double_t(FLT_MIN);
-      double  Planes_Z[10] =   {1244,1248,1334,1338,1484,1488,1634,1638,1724,1728};
-      float ZA =0.54141;
-      float Ipar=64.7e-9;      ///GeV
-      float rho= 1.032;   //g/cm^3
-      float X1=2.49;
-      float X0=0.1469;
-      float muon_mass=0.1056583755; //GeV/c^2
-      float a=0.1610;
-      float m=3.24;
-      float hw=21.54e-9;
-      float Z=0.085+6*0.915;
+      double Planes_Z[10]={1244,1248,1334,1338,1484,1488,1634,1638,1724,1728};;
+      if (dir<0) 
+      {
+        Planes_Z[0]=1724; Planes_Z[1]=1728;
+        Planes_Z[2]=1634; Planes_Z[3]=1638;
+        Planes_Z[4]=1484; Planes_Z[5]=1488;
+        Planes_Z[6]=1334; Planes_Z[7]=1338;
+        Planes_Z[8]=1244; Planes_Z[9]=1248;
+      }
+        
+      //for(size_t i=0;i<10;i++) std::cout<<Planes_Z[i]<<" ";
+      //std::cout<<"\n";
+
+      double ZA =0.54141;
+      double Ipar=64.7e-9;      ///GeV
+      double rho= 1.032;   //g/cm^3
+      double X1=2.49;
+      double X0=0.1469;
+      double muon_mass=0.1056583755; //GeV/c^2
+      double a=0.1610;
+      double m=3.24;
+      double hw=21.54e-9;
+      double Z=0.085+6*0.915;
       
       
       
@@ -537,7 +549,7 @@ void KalmanFit(
       }
       
 
-      
+      //std::cout<<"kalman: |p| "<<(1/TMath::Cos(TMath::ATan(tanlambda_seed)))*(0.5*0.299792458e-2)/curvature_seed<<" dxyz: not given "<< " 1/pT " << curvature_seed/(0.5*0.299792458e-2) << std::endl;
 
       //std::cout<<i<<std::endl;
 
@@ -561,9 +573,9 @@ void KalmanFit(
       //need to check this
       TMatrixD Q(5,5);
       Q.Zero();
-      Q[4][4] = 0.0001;     // allow for some curvature uncertainty between points
-      Q[2][2] = 1e-09;      // phi
-      Q[3][3] = 0.0001;   // lambda
+      //Q[4][4] = 0.0001;     // allow for some curvature uncertainty between points
+      //Q[2][2] = 1e-09;      // phi
+      //Q[3][3] = 0.0001;   // lambda
 
       // Noise covariance on the measured points.
       // 16 cm2 initially, might reasonably be lowered to typicalResidual near line 552-67
@@ -881,12 +893,14 @@ void KalmanFit(
                   {
                     
                     double deltaxyz = sqrt(pow((zh-zpos),2)+pow((parvec[0]-parvecprev[0]),2)+pow((parvec[1]-parvecprev[1]),2));
-
+                    //if(abs(deltaxyz)<20) std::cout<<"deltaxyz reconstruction:"<<deltaxyz<<std::endl;
                     
-                    if(deltaxyz>20)
+                    if(abs(deltaxyz)>20)
                     {
                       
-                      double dzfromplane=Planes_Z[p*2-1]-zpos;
+                      double dzfromplane;
+                      if (dir>0) dzfromplane=Planes_Z[p*2-1]-zpos;
+                      else dzfromplane=Planes_Z[p*2-2]-zpos;
                       //std::cout<<"dzfromplane: "<<dzfromplane<<std::endl;
                       //std::cout<<"zh: "<<zh<<"zpos: "<<zpos<<"planeh: "<<Planes_Z[p*2]<<"planepos: "<<Planes_Z[p*2-1]<<std::endl;
                       Double_t z2rin = (0.5*0.299792458e-2)*parvecprev[4]*dzfromplane;            
@@ -908,9 +922,10 @@ void KalmanFit(
 
                       
                       deltaxyz=sqrt(dzfromplane*dzfromplane+pow(dzfromplane*dy2dzin,2)+pow(parvecprev[3]/((0.5*0.299792458e-2)*parvecprev[4])*rotin,2));
-                      
+                      //std::cout<<"deltaxyz reconstruction:"<<deltaxyz<<std::endl;
 
-                      //dzfromplane=Planes_Z[p*2]-zh;
+                      if (dir>0) dzfromplane=Planes_Z[p*2]-zh;
+                      else dzfromplane=Planes_Z[p*2+1]-zh;
                       //std::cout<<"dzfromplane: "<<dzfromplane<<std::endl;
                       z2rin = (0.5*0.299792458e-2)*parvec[4]*dzfromplane;            
                       f1in=parvec[2];
@@ -929,16 +944,23 @@ void KalmanFit(
                         else      rotin = -TMath::Pi() - rotin;
                       }
                       deltaxyz+=sqrt(dzfromplane*dzfromplane+pow(dzfromplane*dy2dzin,2)+pow(parvec[3]/((0.5*0.299792458e-2)*parvec[4])*rotin,2));
-                      std::cout<<"dxyzfromplane: "<<deltaxyz<<std::endl;
+                      //std::cout<<"deltaxyz reconstruction:"<<deltaxyz<<std::endl;
+                      //status= CorrectForMeanMaterial(-deltaxyz*rho,muon_mass,0.005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,parvec,P);
+                      //std::cout<<"dxyzfromplane: "<<deltaxyz<<std::endl;
                     }
 
                     
-                    
+                    deltaxyz*=dir;
                     
                     double p = sqrt(pow(parvec[3]/parvec[4],2)+pow(1/parvec[4],2));
+                    
                     //deltaxyz*=dir;
-                    status= CorrectForMeanMaterial(dir*deltaxyz*rho,muon_mass,0.005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,parvec,P);
-                    //std::cout<<status<<std::endl;
+                    double checkpT = parvec[4];
+                    status= CorrectForMeanMaterial(-deltaxyz*rho,muon_mass,0.005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,parvec,P);
+
+                    double ptest = sqrt(pow(parvec[3]/parvec[4],2)+pow(1/parvec[4],2));
+                    //std::cout<<"kalman: |p| "<<ptest<<" dxyz "<< deltaxyz << " 1/pT " << parvec[4] << std::endl;
+                    //std::cout<<"correction: q/pT before correction "<<checkpT<<" after correction "<<parvec[4]<<std::endl;
                     //std::cout<<"q/pT "<<invpTtemp<< " pxyz: "<<  abs(1/invpTtemp)*sinphitemp<<" "<<abs(1/invpTtemp)*sqrt(1-sinphitemp*sinphitemp)<<" "<<abs(1/invpTtemp)*tanlambdatemp<<std::endl;
                   }
               
@@ -977,13 +999,13 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
       // 4: q/pT (1/(GeV/c))
       ///Prepare a simple tree with just the coordinates
 
-      
+      Double_t dEdx = 0.01;
 
       //Right now with perfect helix
       std::cout << std::setprecision(17);
       
 
-      TFile fs("garlitetest_x1y1smear_realseed_elosscorr.root","recreate");
+      TFile fs("garlitetest_nosmear_perfectseed_elosscorr_r5_5.root","recreate");
       TTree t1s("t1s","helix simple tree");
       double  Plane_XY[4] = {-300, +300, -400, 100}; //all in cm
       double  Plane_XY_fid[4] = {-200, +200, -300, 0};
@@ -995,16 +1017,16 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
       double  B=0.5; //in Tesla
       XYZVector Z_axis(0,0,1);
       XYZVector Y_axis(0,1,0);
-      float ZA =0.54141;
-      float I=64.7e-9;      ///GeV
-      float rho= 1.032;   //g/cm^3
-      float X1=2.49;
-      float X0=0.1469;
-      float muon_mass=0.1056583755; //GeV/c^2
-      float a=0.1610;
-      float m=3.24;
-      float hw=21.54e-9;
-      float Z=0.085+6*0.915;
+      double ZA =0.54141;
+      double I=64.7e-9;      ///GeV
+      double rho= 1.032;   //g/cm^3
+      double X1=2.49;
+      double X0=0.1469;
+      double muon_mass=0.1056583755; //GeV/c^2
+      double a=0.1610;
+      double m=3.24;
+      double hw=21.54e-9;
+      double Z=0.085+6*0.915;
 
       int printlevelKalman = 0;
       int printlevelHelix = 0;
@@ -1018,6 +1040,7 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
       std::vector<XYZVector> xyz;
       std::vector<XYZVector> pxyz;
       std::vector<XYZVector> xyz_plane;
+      std::vector<XYZVector> pxyz_plane;
       std::vector<XYZVector> xyz_plane_sm;
       //std::vector<XYZVector> xyz_plane_mean;
       std::vector<double> sinphi;
@@ -1030,17 +1053,17 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
       int nPoints;
       Bool_t status;
       std::vector<int> nHits_perPlane;
-      std::vector<XYZVector> xyz_firstinPlane;
-      std::vector<XYZVector> pxyz_firstinPlane;
-      std::vector<double> sinphi_firstinPlane;
-      std::vector<double> tanlambda_firstinPlane;
-      std::vector<double> curvature_firstinPlane;
+      //std::vector<XYZVector> xyz_firstinPlane;
+      //std::vector<XYZVector> pxyz_firstinPlane;
+      //std::vector<double> sinphi_firstinPlane;
+      //std::vector<double> tanlambda_firstinPlane;
+      //std::vector<double> curvature_firstinPlane;
       
 
       ////Kalman
 
-      double Ry = TMath::Sq(20);//TMath::Sq(2);//TMath::Sq(0.01);//TMath::Sq(3);
-      double Rx = TMath::Sq(20);//TMath::Sq(0.01);//TMath::Sq(0.01); //1.1921e-07
+      double Ry = TMath::Sq(5);//TMath::Sq(2);//TMath::Sq(0.01);//TMath::Sq(3);
+      double Rx = TMath::Sq(5);//TMath::Sq(0.01);//TMath::Sq(0.01); //1.1921e-07
       double Ryx = TMath::Sq(0);
 
       ////FWD
@@ -1075,16 +1098,17 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
       t1s.Branch("invpT",&invpT);
       t1s.Branch("invpT_plane",&invpT_plane);
       t1s.Branch("xyz_plane",&xyz_plane);
+      t1s.Branch("pxyz_plane",&pxyz_plane);
       t1s.Branch("xyz_plane_sm",&xyz_plane_sm);
       //t1s.Branch("xyz_plane_mean",&xyz_plane_mean);
       t1s.Branch("charge",&charge);
       t1s.Branch("nPoints",&nPoints);
       t1s.Branch("nHits_perPlane",&nHits_perPlane);
-      t1s.Branch("xyz_firstinPlane",&xyz_firstinPlane);
-      t1s.Branch("sinphi_firstinPlane",&sinphi_firstinPlane);
-      t1s.Branch("tanlambda_firstinPlane",&tanlambda_firstinPlane);
-      t1s.Branch("pxyz_firstinPlane",&pxyz_firstinPlane);
-      t1s.Branch("curvature_firstinPlane",&curvature_firstinPlane);
+      //t1s.Branch("xyz_firstinPlane",&xyz_firstinPlane);
+      //t1s.Branch("sinphi_firstinPlane",&sinphi_firstinPlane);
+      //t1s.Branch("tanlambda_firstinPlane",&tanlambda_firstinPlane);
+      //t1s.Branch("pxyz_firstinPlane",&pxyz_firstinPlane);
+      //t1s.Branch("curvature_firstinPlane",&curvature_firstinPlane);
       
 
       ////Kalman
@@ -1153,7 +1177,7 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
       else sinphitemp=-TMath::Sin(TMath::ACos(pprojyz.Unit().Dot(Z_axis.Unit())));
       //std::cout<<pxyztemp<<" "<<sinphitemp<<std::endl;
       double invpTtemp=charge/(sqrt(pxyztemp.Y()*pxyztemp.Y()+pxyztemp.Z()*pxyztemp.Z()));
-      double curvaturetemp =charge*((0.299792458e-2)*B)*invpTtemp; //in cm^-1
+      double curvaturetemp =((0.299792458e-2)*B)*invpTtemp; //in cm^-1
       
       double tanlambdatemp =0;
       if(pxyztemp.X()>0) tanlambdatemp =TMath::Tan(TMath::ACos(pxyztemp.Unit().Dot(pprojyz.Unit())));
@@ -1169,6 +1193,7 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
       status=true;
 
       std::vector<XYZVector> xyzplanecontainer[5];
+      std::vector<XYZVector> pxyzplanecontainer[5];
       std::vector<double> sinphiplanecontainer[5];
       std::vector<double> tanlambdaplanecontainer[5];
       std::vector<double> invpTplanecontainer[5];
@@ -1198,20 +1223,20 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
             
             if (TMath::Abs(f1) >= kAlmost1) 
             {
-              //std::cout<<"f1: "<<f1<<"y: "<<xyztemp.Y()<<"z: "<<xyztemp.Z()<<std::endl;
+              std::cout<<"f1: "<<f1<<"y: "<<xyztemp.Y()<<"z: "<<xyztemp.Z()<<std::endl;
               status= false;
               break;
             }
             
             if (TMath::Abs(f2) >= kAlmost1) 
             {
-              //std::cout<<"f2: "<<f2<<std::endl;
+              std::cout<<"f2: "<<f2<<std::endl;
               status= false;
               break;
             }
             if (TMath::Abs(tanlambdatemp)< kAlmost0) 
             {
-              //std::cout<<"tanlambdatemp: "<<tanlambdatemp<<std::endl;
+              std::cout<<"tanlambdatemp: "<<tanlambdatemp<<std::endl;
               status= false;
               break;
             }
@@ -1220,13 +1245,13 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
             
             if (TMath::Abs(r1)<kAlmost0)  
             {
-              //std::cout<<"r1: "<<r1<<std::endl;
+              std::cout<<"r1: "<<r1<<std::endl;
               status= false;
               break;
             }
             if (TMath::Abs(r2)<kAlmost0)  
             {
-              //std::cout<<"r2: "<<r1<<std::endl;
+              std::cout<<"r2: "<<r1<<std::endl;
               status= false;
               break;
             }
@@ -1265,23 +1290,9 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
                    (xyzprev.Z()>Planes_Z[p*2] && xyzprev.Z()<Planes_Z[p*2+1]))
                   {
                     //std::cout<<"In Plane "<<p<<std::endl;
-                    if(InPlane[p]==0)
-                    {
-                      xyz_firstinPlane.push_back(xyztemp);
-                      pxyz_firstinPlane.push_back(pxyztemp);
-                      tanlambda_firstinPlane.push_back(tanlambdatemp);
-                      sinphi_firstinPlane.push_back(sinphitemp);
-                      curvature_firstinPlane.push_back(curvaturetemp);
-                      InPlane[p]=1;
-                    }
+                    
 
-                    if (xyztemp.Z()>Planes_Z[p*2] && xyztemp.Z()<Planes_Z[p*2+1])
-                    {
-                      xyzplanecontainer[p].push_back(xyztemp);
-                      sinphiplanecontainer[p].push_back(sinphitemp);
-                      tanlambdaplanecontainer[p].push_back(tanlambdatemp);
-                      invpTplanecontainer[p].push_back(invpTtemp);
-                    }
+                    
                     
                     double deltaxyz;
                     XYZVector xyztemptemp=xyztemp;
@@ -1309,6 +1320,7 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
                       xyzprev.SetX(xyzprev.X()+tanlambdaprev/curvatureprev*rotin);
             
                     }
+                    
                     if(xyztemptemp.Z()>Planes_Z[p*2+1])
                     {
                       double dzfromplane=Planes_Z[p*2+1]-xyzprev.Z();
@@ -1336,8 +1348,44 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
                     }
                     XYZVector Delta=(xyztemptemp-xyzprev);
                     deltaxyz=sqrt(Delta.Mag2());
+                    //std::cout<<"deltaxyz propagation:"<<deltaxyz<<std::endl;
+                    
                     //std::cout<<deltaxyz<<std::endl;
-                    status= CorrectForMeanMaterial(-deltaxyz*rho,muon_mass,0.005,sqrt(pxyztemp.Mag2()),(sqrt(pxyztemp.Mag2())/muon_mass),rho,X0,X1,I,ZA,invpTtemp);
+                    Bool_t checkstatus;
+                    checkstatus= CorrectForMeanMaterial(-deltaxyz*rho,muon_mass,0.005,sqrt(pxyztemp.Mag2()),(sqrt(pxyztemp.Mag2())/muon_mass),rho,X0,X1,I,ZA,invpTtemp);
+                    if (!checkstatus) status=checkstatus;
+
+                    curvaturetemp =((0.299792458e-2)*B)*invpTtemp;
+
+                    //std::cout<<"propagation: |p| "<<sqrt(pxyztemp.Mag2())<<" dxyz "<< deltaxyz << " 1/pT " << invpTtemp << " curvature " << std::endl;
+                    pxyztemp.SetY(abs(1/invpTtemp)*sinphitemp);
+                    pxyztemp.SetZ(abs(1/invpTtemp)*sqrt(1-sinphitemp*sinphitemp));
+                    pxyztemp.SetX(abs(1/invpTtemp)*tanlambdatemp);
+                    
+                    /*
+                    if(InPlane[p]==0 && (xyztemp.Z()>Planes_Z[p*2] && xyztemp.Z()<Planes_Z[p*2+1]))
+                    {
+                      xyz_firstinPlane.push_back(xyztemp);
+                      pxyz_firstinPlane.push_back(pxyztemp);
+                      tanlambda_firstinPlane.push_back(tanlambdatemp);
+                      sinphi_firstinPlane.push_back(sinphitemp);
+                      curvature_firstinPlane.push_back(curvaturetemp);
+                      //if (p==0) std::cout<<curvaturetemp/((0.299792458e-2)*B)<<" "<<invpTtemp<<" "<<curvature_firstinPlane.at(0)/((0.299792458e-2)*B)<<std::endl;
+                      InPlane[p]=1;
+                    }
+                    */
+                    
+                    if (xyztemp.Z()>Planes_Z[p*2] && xyztemp.Z()<Planes_Z[p*2+1])
+                    {
+                      xyzplanecontainer[p].push_back(xyztemp);
+                      pxyzplanecontainer[p].push_back(pxyztemp);
+                      sinphiplanecontainer[p].push_back(sinphitemp);
+                      tanlambdaplanecontainer[p].push_back(tanlambdatemp);
+                      invpTplanecontainer[p].push_back(invpTtemp);
+
+                      //std::cout<<abs((1/np.cos(np.arctan(t.tanlambda_plane.at(0))))*1/t.invpT_plane.at(0))
+                    }
+                    //double deltap = dEdx*
                     //std::cout<<status<<std::endl;
                     //std::cout<<"q/pT "<<invpTtemp<< " pxyz: "<<  abs(1/invpTtemp)*sinphitemp<<" "<<abs(1/invpTtemp)*sqrt(1-sinphitemp*sinphitemp)<<" "<<abs(1/invpTtemp)*tanlambdatemp<<std::endl;
                   }
@@ -1346,7 +1394,7 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
             
 
             
-            curvaturetemp =((0.299792458e-2)*B)*invpTtemp;
+            
 
             
 
@@ -1387,10 +1435,12 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
         {
         if(xyzplanecontainer[p].size()>1) hitsinplane= rand() % (xyzplanecontainer[p].size()-1) + 2 ;
         else hitsinplane=xyzplanecontainer[p].size();
+        hitsinplane=xyzplanecontainer[p].size();
         nHits_perPlane.push_back(hitsinplane);
         }
         else continue;
 
+        
         //std::cout<<"hitsinplane "<<hitsinplane<<std::endl;
         std::vector<size_t> rec;
         for(size_t l=0;l<xyzplanecontainer[p].size();l++) rec.push_back(l);
@@ -1400,10 +1450,25 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
         std::sort(recsub.begin(),recsub.end());
         for(size_t l=0;l<hitsinplane;l++)
         {
+          
           xyz_plane.push_back(xyzplanecontainer[p].at(recsub.at(l)));
+          pxyz_plane.push_back(pxyzplanecontainer[p].at(recsub.at(l)));
           sinphi_plane.push_back(sinphiplanecontainer[p].at(recsub.at(l)));
           tanlambda_plane.push_back(tanlambdaplanecontainer[p].at(recsub.at(l)));
           invpT_plane.push_back(invpTplanecontainer[p].at(recsub.at(l)));
+          /*
+          if(InPlane[p]==0)
+                    {
+                      xyz_firstinPlane.push_back(xyzplanecontainer[p].at(recsub.at(l)));
+                      pxyz_firstinPlane.push_back(pxyzplanecontainer[p].at(recsub.at(l)));
+                      tanlambda_firstinPlane.push_back(tanlambdaplanecontainer[p].at(recsub.at(l)));
+                      sinphi_firstinPlane.push_back(sinphiplanecontainer[p].at(recsub.at(l)));
+                      curvature_firstinPlane.push_back(sinphiplanecontainer[p].at(recsub.at(l)));
+                      //if (p==0) std::cout<<curvaturetemp/((0.299792458e-2)*B)<<" "<<invpTtemp<<" "<<curvature_firstinPlane.at(0)/((0.299792458e-2)*B)<<std::endl;
+                      InPlane[p]=1;
+                    }
+          */
+          
 
           XYZVector xyz_plane_temp_sm;
 
@@ -1415,6 +1480,7 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
         }
       }
       
+      //std::cout<<sqrt(pxyz_plane.at(0).Y()*pxyz_plane.at(0).Y()+pxyz_plane.at(0).Z()*pxyz_plane.at(0).Z())<<" "<<abs(1/invpT_plane.at(0))<<std::endl;
       //std::cout<<"check2"<<std::endl;
       
       nPoints=xyz.size();
@@ -1432,8 +1498,8 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
       }
       */
 
-      
-      if(xyz_plane.size()>0 && nHits_perPlane.size()>=3) 
+      std::cout<<"checkstatus "<<status<<std::endl;
+      if(xyz_plane.size()>0 && nHits_perPlane.size()>=3 && status==true) 
       {
         //std::cout<<"checkKal1"<<std::endl;
         parvect_bkw.clear();
@@ -1451,15 +1517,18 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
         sinphi_seed=gRandom->Gaus(sinphi_firstinPlane.at(0),sinphi_firstinPlane.at(0)/30);
         tanlambda_seed=gRandom->Gaus(tanlambda_firstinPlane.at(0),tanlambda_firstinPlane.at(0)/30);
         double forward=1.;
-        
+        */
         
         //Perfect seed
-        xyz_seed=xyz_firstinPlane.at(0);
-        curvature_seed=curvature_firstinPlane.at(0);
-        sinphi_seed=sinphi_firstinPlane.at(0);
-        tanlambda_seed=tanlambda_firstinPlane.at(0);
         double forward=1.;
-        
+
+        xyz_seed=xyz_plane.at(0);
+        curvature_seed=invpT_plane.at(0)*((0.299792458e-2)*B);
+        //std::cout<<"calculated q/pT: "<<curvature_seed/((0.299792458e-2)*B)<<" actual value "<<invpT_plane.at(0)<<std::endl; 
+        sinphi_seed=sinphi_plane.at(0);
+        tanlambda_seed=tanlambda_plane.at(0);
+
+        /*
         
         //No Seed
         xyz_seed.SetXYZ(0.,0.,0.);
@@ -1470,18 +1539,18 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
         */
         //std::cout<<"checkKal2"<<std::endl;
 
-        
+        /*
         ///Helix Fit Seed
         Helix_Fit(xyz_plane_sm,xyz_seed,curvature_seed,lambdaGar_seed,phi_seed,printlevelHelix);
         double forward=1.;
         sinphi_seed = TMath::Sin(phi_seed);
         tanlambda_seed = TMath::Tan(lambdaGar_seed);
         //std::cout<<"checkKal3"<<std::endl;
-        
+        */
         
 
-        if(printlevelKalman>0) std::cout << " Real Values: y " << xyz_firstinPlane.at(0).Y() << " x " << xyz_firstinPlane.at(0).X() << " sinphi " << sinphi_firstinPlane.at(0) << " tanlambda " << tanlambda_firstinPlane.at(0) << " 1/pT " << curvature_firstinPlane.at(0)/(0.5*0.299792458e-2) << " p: " <<sqrt(pxyz_firstinPlane.at(0).Mag2())<< std::endl;
-        KalmanFit(xht,yht,zht,parvect,predstept,Pt,PPredt,Rt,zpost,xyz_plane_sm,sinphi_plane,Ry,Rx,Ryx,xyz_seed,tanlambda_seed,curvature_seed,sinphi_seed,forward,status,printlevelKalman);
+        if(printlevelKalman>0) std::cout << " Real Values: y " << xyz_plane.at(0).Y() << " x " << xyz_plane.at(0).X() << " sinphi " << sinphi_plane.at(0) << " tanlambda " << tanlambda_plane.at(0) << " 1/pT " << invpT_plane.at(0) << " p: " <<sqrt(pxyz_plane.at(0).Mag2())<< std::endl;
+        KalmanFit(xht,yht,zht,parvect,predstept,Pt,PPredt,Rt,zpost,xyz_plane,sinphi_plane,Ry,Rx,Ryx,xyz_seed,tanlambda_seed,curvature_seed,sinphi_seed,forward,status,printlevelKalman);
         //std::cout<<"status= "<<status<<std::endl;
         //std::cout<<"checkKal4"<<std::endl;
         
@@ -1496,7 +1565,7 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
         curvature_seed_bkw=parvect.at(parvect.size()-1)[4]*(0.5*0.299792458e-2);
         sinphi_seed_bkw=parvect.at(parvect.size()-1)[2];
         tanlambda_seed_bkw=parvect.at(parvect.size()-1)[3];
-        std::vector<XYZVector> xyz_plane_bkw=xyz_plane_sm;
+        std::vector<XYZVector> xyz_plane_bkw=xyz_plane;
         std::reverse(xyz_plane_bkw.begin(),xyz_plane_bkw.end());
         std::vector<double> sinphi_plane_bkw=sinphi_plane;
         std::reverse(sinphi_plane_bkw.begin(),sinphi_plane_bkw.end());
@@ -1516,10 +1585,12 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
       }
       //std::cout<<"checkKal7"<<std::endl;
 
+      //std::cout<<status<<std::endl;
+
       if(parvect.empty() || parvect_bkw.empty()) status=false;
       //std::cout<<parvect.size()<<std::endl;
       //std::cout<<"checkKal8"<<std::endl;
-      //std::cout<<"status "<<status<<std::endl;
+      std::cout<<"status "<<status<<std::endl;
       
       if(status==true) t1s.Fill();
 
@@ -1536,6 +1607,7 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
       if(!xyz.empty())xyz.clear();
       if(!pxyz.empty())pxyz.clear();
       if(!xyz_plane.empty())xyz_plane.clear();
+      if(!pxyz_plane.empty())pxyz_plane.clear();
       if(!xyz_plane_sm.empty())xyz_plane_sm.clear();
       
       if(!xht.empty())xht.clear();
@@ -1556,13 +1628,14 @@ void kalman_helix_garlite_Alice_Eloss_test_corr(size_t nevents)
       if(!invpT.empty())invpT.clear();
       //parvect_bkw.clear();
 
-      
+      /*
       if(!xyz_firstinPlane.empty())xyz_firstinPlane.clear();
       if(!sinphi_firstinPlane.empty())sinphi_firstinPlane.clear();
       if(!tanlambda_firstinPlane.empty())tanlambda_firstinPlane.clear();
       if(!curvature_firstinPlane.empty())curvature_firstinPlane.clear();
       if(!pxyz_firstinPlane.empty())pxyz_firstinPlane.clear();
       if(!nHits_perPlane.empty())nHits_perPlane.clear();
+      */
       //if(!xyz_plane_mean.empty())xyz_plane_mean.clear();
 
       //std::cout<<"check2"<<std::endl;

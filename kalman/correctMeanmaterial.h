@@ -150,9 +150,9 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Float_t stepFra
   }
 
   //Applying the corrections*****************************
-  P[2][2] += cC22;
-  P[3][3] += cC33;
-  P[4][3] += cC43;
+  //P[2][2] += cC22;
+  //P[3][3] += cC33;
+  //P[4][3] += cC43;
   P[4][4] += cC44;
   parvec[4]  *= cP4;
   //CheckCovariance();
@@ -238,4 +238,170 @@ Iter select_randomly(Iter start, Iter end) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     return select_randomly(start, end, gen);
+}
+
+
+Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVectorD parvec, Double_t kAlmost0, Double_t kAlmost1, int fPrintLevel, int dir, Bool_t InPlane)
+{
+            ////Prepare all the parameters for the prediction
+
+          double ZA =0.54141;
+          double Ipar=64.7e-9;      ///GeV
+          double rho= 1.032;   //g/cm^3
+          double X1=2.49;
+          double X0=0.1469;
+          double muon_mass=0.1056583755; //GeV/c^2
+          double a=0.1610;
+          double m=3.24;
+          double hw=21.54e-9;
+          double Z=0.085+6*0.915;
+
+          double curvature = (0.5*0.299792458e-2)*parvec[4];
+          double sinphi = parvec[2];
+          double tanlambda = parvec[3];
+
+          Double_t z2r = curvature*dz;
+          //std::cout<<"check0"<<std::endl;
+          Double_t f1=sinphi, f2=f1 + z2r;
+          //std::cout<<"check 0.1"<<std::endl;
+          if (TMath::Abs(f1) >= kAlmost1) 
+          {
+            std::cout<<"f1= "<<f1<<std::endl;
+            return false;
+          }
+          //std::cout<<"check 0.2"<<std::endl;
+          if (TMath::Abs(f2) >= kAlmost1) 
+          {
+            std::cout<<"f2= "<<f2<<std::endl;
+            return false;
+          }
+          if (TMath::Abs(tanlambda)< kAlmost0) 
+          {
+            std::cout<<"tanlambda= "<<tanlambda<<std::endl;
+            return false;
+          }
+
+          //std::cout<<"check1"<<std::endl;
+          
+          
+          Double_t r1=TMath::Sqrt((1.-f1)*(1.+f1)), r2=TMath::Sqrt((1.-f2)*(1.+f2));
+          if (TMath::Abs(r1)<kAlmost0)  
+          {
+            std::cout<<"r1= "<<r1<<std::endl;
+            return false;
+          }
+          if (TMath::Abs(r2)<kAlmost0)  
+          {
+            std::cout<<"r2= "<<r1<<std::endl;
+            return false;
+          }
+
+          //std::cout<<"check2"<<std::endl;
+ 
+          double dy2dz = (f1+f2)/(r1+r2);
+          double rot = TMath::ASin(r1*f2 - r2*f1); 
+            if (f1*f1+f2*f2>1 && f1*f2<0) {          // special cases of large rotations or large abs angles
+              if (f2>0) rot =  TMath::Pi() - rot;    //
+              else      rot = -TMath::Pi() - rot;
+            }
+
+          //std::cout<<"check3"<<std::endl;
+
+          
+
+          // predicted step
+          if (fPrintLevel > 1)
+            {
+              std::cout << "P Matrix: " << std::endl;
+              P.Print();
+            }
+          
+          //std::cout<<"check4"<<std::endl;
+          predstep = parvec;
+
+          if(fPrintLevel>0) std::cout<<"z2r: "<<z2r<<std::endl;
+          
+          predstep[0] += dz*dy2dz;  // update y
+          predstep[2] += z2r;        // update sinphi
+          predstep[1] +=tanlambda/curvature*rot; //update x
+                                 // update tree values
+          
+          if (fPrintLevel >0 )
+            {
+              std::cout << " Predstep: y " << predstep[0] << " x " << predstep[1] << " sinphi " << predstep[2] << " tanlambda " << predstep[3] << " 1/pT " << predstep[4] << std::endl;
+            }
+          
+          
+          
+          // equations from the extended Kalman filter
+          //f = F - 1
+          /*
+          Double_t f02=    dx/(r1*r1*r1);            Double_t cc=crv/fP4;
+          Double_t f04=0.5*dx*dx/(r1*r1*r1);         f04*=cc;
+          Double_t f12=    dx*fP3*f1/(r1*r1*r1);
+          Double_t f14=0.5*dx*dx*fP3*f1/(r1*r1*r1);  f14*=cc;
+          Double_t f13=    dx/r1;
+          Double_t f24=    dx;                       f24*=cc;
+          */
+          Double_t rinv = 1./r1;
+          Double_t r3inv = rinv*rinv*rinv;
+          Double_t f24=    z2r/parvec[4];
+          Double_t f02=    dz*r3inv;
+          Double_t f04=0.5*f24*f02;
+          Double_t f12=    f02*parvec[3]*f1;
+          Double_t f14=0.5*f24*f02*parvec[3]*f1;
+          Double_t f13=    dz*rinv;
+
+
+          //b = C*ft
+          Double_t b00=f02*P[2][0] + f04*P[4][0], b01=f12*P[2][0] + f14*P[4][0] + f13*P[3][0];
+          Double_t b02=f24*P[4][0];
+          Double_t b10=f02*P[2][1] + f04*P[4][1], b11=f12*P[2][1] + f14*P[4][1] + f13*P[3][1];
+          Double_t b12=f24*P[4][1];
+          Double_t b20=f02*P[2][2] + f04*P[4][2], b21=f12*P[2][2] + f14*P[4][2] + f13*P[3][2];
+          Double_t b22=f24*P[4][2];
+          Double_t b40=f02*P[4][2] + f04*P[4][4], b41=f12*P[4][2] + f14*P[4][4] + f13*P[4][3];
+          Double_t b42=f24*P[4][4];
+          Double_t b30=f02*P[3][2] + f04*P[4][3], b31=f12*P[3][2] + f14*P[4][3] + f13*P[3][3];
+          Double_t b32=f24*P[4][3];
+          
+
+          //a = f*b = f*C*ft
+          Double_t a00=f02*b20+f04*b40,a01=f02*b21+f04*b41,a02=f02*b22+f04*b42;
+          Double_t a11=f12*b21+f14*b41+f13*b31,a12=f12*b22+f14*b42+f13*b32;
+          Double_t a22=f24*b42;
+
+          
+          PPred=P;
+          //F*C*Ft = C + (b + bt + a)
+          PPred[0][0] += b00 + b00 + a00;
+          PPred[1][0] += b10 + b01 + a01; 
+          PPred[2][0] += b20 + b02 + a02;
+          PPred[3][0] += b30;
+          PPred[4][0] += b40;
+          PPred[1][1] += b11 + b11 + a11;
+          PPred[2][1] += b21 + b12 + a12;
+          PPred[3][1] += b31; 
+          PPred[4][1] += b41;
+          PPred[2][2] += b22 + b22 + a22;
+          PPred[3][2] += b32;
+          PPred[4][2] += b42;
+
+          double deltaxyz = dir * sqrt(pow((dz),2)+pow((dz*dy2dz),2)+pow((tanlambda/curvature*rot),2));
+          std::cout<<"deltaxyz dist"<<deltaxyz<<std::endl;
+
+          deltaxyz = rot*dir /abs( curvature * cos(atan(tanlambda)));
+          std::cout<<"deltaxyz curv"<<deltaxyz<<std::endl;
+
+          double p = sqrt(pow(parvec[3]/parvec[4],2)+pow(1/parvec[4],2));
+
+          
+          
+          if(InPlane) 
+          {
+          Bool_t checkstatus= CorrectForMeanMaterial(-deltaxyz*rho,muon_mass,0.005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,predstep,PPred);
+          return checkstatus;
+          }
+
+          return 1.;
 }
