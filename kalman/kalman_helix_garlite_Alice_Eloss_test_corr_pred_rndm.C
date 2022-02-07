@@ -512,7 +512,7 @@ void KalmanFit(
                    Bool_t Energy_loss,
                    std::vector<double> invpTplane,
                    std::string CorrTime,
-                   Bool_t Backward_separate
+                   Bool_t Fixed_Cov
 
                    
 
@@ -575,7 +575,7 @@ void KalmanFit(
       P[2][2] = TMath::Sq(3);  // sinphi uncertainty 0.5
       P[3][3] = TMath::Sq(3);  // tanlambda uncertainty 0.5
       P[4][4] = TMath::Sq(75);  // q/pT uncertainty 0.5
-      if(dir<0 && !Backward_separate) P=Pt.at(Pt.size()-1);
+      if(dir<0 &&  !Fixed_Cov) P=Pt.at(Pt.size()-1);
       TMatrixD PPred(5,5);
       PPred.Zero();
 
@@ -938,7 +938,7 @@ void kalman_helix_garlite_Alice_Eloss_test_corr_pred_rndm(size_t nevents)
       //std::cout << std::setprecision(17);
       
 
-      TFile fs("./toygarlite/nosmear_realseed_elosscorr_fixedp0.7_bkwsep/garlitetest_nosmear_realseed_elosscorr_r001_001_fixedp0.7.root","recreate");
+      TFile fs("./toygarlite/nosmear_realseed_elosscorr_fixedp0.7_unfixedcov/garlitetest_nosmear_realseed_elosscorr_r001_001_fixedp0.7_unfixedcov.root","recreate");
       //TFile fs("test.root","recreate");
       TTree t1s("t1s","helix simple tree");
 
@@ -946,7 +946,8 @@ void kalman_helix_garlite_Alice_Eloss_test_corr_pred_rndm(size_t nevents)
       std::string Seedtype = "real"; //perfect or real
       std::string Energy_Smear = "no"; //gauss or landau
       std::string CorrTime = ""; //select if apply energy loss correction before or after a posteriori step. Either "after" or anything else for "before"
-      Bool_t Backward_separate = true; // apply Kalman filter backwards reusing the Helix fit and not the final point in the forward Kalman
+      Bool_t Backward_separate = false; // apply Kalman filter backwards reusing the Helix fit and not the final point in the forward Kalman
+      Bool_t Fixed_Cov = false; // apply Kalman filter backwards using fixed guess values for the covariance matrix
       Bool_t Energy_loss_corr = true;
       Bool_t Energy_loss = true;
       Bool_t Smear = false;
@@ -1527,8 +1528,8 @@ void kalman_helix_garlite_Alice_Eloss_test_corr_pred_rndm(size_t nevents)
         
 
         if(printlevelKalman>0) std::cout << " Real Values: y " << xyz_plane.at(0).Y() << " x " << xyz_plane.at(0).X() << " sinphi " << sinphi_plane.at(0) << " tanlambda " << tanlambda_plane.at(0) << " 1/pT " << invpT_plane.at(0) << " p: " <<sqrt(pxyz_plane.at(0).Mag2())<< std::endl;
-        if(Smear==kFALSE) KalmanFit(xht,yht,zht,parvect,predstept,Pt,PPredt,Rt,zpost,xyz_plane,sinphi_plane,Ry,Rx,Ryx,xyz_seed,tanlambda_seed,curvature_seed,sinphi_seed,forward,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane,CorrTime,Backward_separate);
-        else KalmanFit(xht,yht,zht,parvect,predstept,Pt,PPredt,Rt,zpost,xyz_plane_sm,sinphi_plane,Ry,Rx,Ryx,xyz_seed,tanlambda_seed,curvature_seed,sinphi_seed,forward,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane,CorrTime,Backward_separate);
+        if(Smear==kFALSE) KalmanFit(xht,yht,zht,parvect,predstept,Pt,PPredt,Rt,zpost,xyz_plane,sinphi_plane,Ry,Rx,Ryx,xyz_seed,tanlambda_seed,curvature_seed,sinphi_seed,forward,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane,CorrTime,Fixed_Cov);
+        else KalmanFit(xht,yht,zht,parvect,predstept,Pt,PPredt,Rt,zpost,xyz_plane_sm,sinphi_plane,Ry,Rx,Ryx,xyz_seed,tanlambda_seed,curvature_seed,sinphi_seed,forward,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane,CorrTime,Fixed_Cov);
         //std::cout<<"status= "<<status<<std::endl;
         //std::cout<<"checkKal4"<<std::endl;
         
@@ -1576,7 +1577,7 @@ void kalman_helix_garlite_Alice_Eloss_test_corr_pred_rndm(size_t nevents)
         //std::cout<<" "<<std::endl<<std::endl;
         
         
-        KalmanFit(xht_bkw,yht_bkw,zht_bkw,parvect_bkw,predstept_bkw,Pt_bkw,PPredt_bkw,Rt_bkw,zpost_bkw,xyz_plane_bkw,sinphi_plane_bkw,Ry,Rx,Ryx,xyz_seed_bkw,tanlambda_seed_bkw,curvature_seed_bkw,sinphi_seed_bkw,backwards,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane_bkw,CorrTime,Backward_separate);
+        KalmanFit(xht_bkw,yht_bkw,zht_bkw,parvect_bkw,predstept_bkw,Pt_bkw,PPredt_bkw,Rt_bkw,zpost_bkw,xyz_plane_bkw,sinphi_plane_bkw,Ry,Rx,Ryx,xyz_seed_bkw,tanlambda_seed_bkw,curvature_seed_bkw,sinphi_seed_bkw,backwards,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane_bkw,CorrTime,Fixed_Cov);
         //std::cout<<"status= "<<status<<std::endl;
         }
         //std::cout<<"checkKal6"<<std::endl;
