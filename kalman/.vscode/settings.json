@@ -80,6 +80,8 @@
         "kalman_helix_garlite_Alice_Eloss_test.C": "cpp",
         "kalman_helix_garlite_Alice_Eloss_test_corr.C": "cpp",
         "kalman_helix_garlite_Alice_Eloss_test2_corr.C": "cpp",
-        "kalman_helix_garlite_Alice_Eloss_test_corr_pred.C": "cpp"
+        "kalman_helix_garlite_Alice_Eloss_test_corr_pred.C": "cpp",
+        "kalman_helix_garlite_Alice_Eloss_test_corr_pred_arc.C": "cpp",
+        "kalman_helix_garlite_Alice_Eloss_test_corr_pred_rndm.C": "cpp"
     }
 }

@@ -94,7 +94,9 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Float_t stepFra
          float kp3,
          float kp4,
          TVectorD &parvec,
-         TMatrixD &P){
+         TMatrixD &P,
+         Double_t &dErec,
+         int dir){
   const Double_t kBGStop=0.02;
   Double_t mass2=mass*mass;
   //p*=q;
@@ -104,6 +106,7 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Float_t stepFra
   Double_t dP= dPdxEulerStep(p,mass,xTimesRho,stepFraction,bg,kp0,kp1,kp2,kp3,kp4);
   if (dP==0) return kFALSE;
   Double_t pOut=p+dP;
+  //if(dir<0) std::cout<<"dir:"<<dir<<" dP:"<<dP<<std::endl;
   if ((pOut/mass)<kBGStop) return kFALSE;
   Double_t Eout=TMath::Sqrt(pOut*pOut+mass2);
   p=(p+pOut)*0.5;
@@ -140,13 +143,15 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Float_t stepFra
   Double_t cP4=1.;
   if ((xTimesRho != 0.) && (beta2 < 1.)) {
     Double_t dE=Eout-Ein;
+    dErec=dE;
     if ( (1.+ dE/p2*(dE + 2*Ein)) < 0. ) return kFALSE;
     cP4 = 1./TMath::Sqrt(1.+ dE/p2*(dE + 2*Ein));  //A precise formula by Ruben !
     //if (TMath::Abs(fP4*cP4)>100.) return kFALSE; //Do not track below 10 MeV/c -dsiable controlled by the BG cut
     // Approximate energy loss fluctuation (M.Ivanov)
     const Double_t knst=0.07; // To be tuned.
     Double_t sigmadE=knst*TMath::Sqrt(TMath::Abs(dE));
-    cC44 += ((sigmadE*Ein/p2*parvec[4])*(sigmadE*Ein/p2*parvec[4]));
+    if (dir>0) cC44 += ((sigmadE*Ein/p2*parvec[4])*(sigmadE*Ein/p2*parvec[4]));
+    else cC44 += ((sigmadE*Ein/p2*parvec[4])*(sigmadE*Ein/p2*parvec[4]));
   }
 
   //Applying the corrections*****************************
@@ -155,6 +160,7 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Float_t stepFra
   //P[4][3] += cC43;
   P[4][4] += cC44;
   parvec[4]  *= cP4;
+  //if(dir>0)std::cout<<"dir="<<dir<<" cP4="<<cP4<<" cC44= "<<cC44<<std::endl;
   //CheckCovariance();
   return kTRUE;
 }
@@ -166,7 +172,9 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Double_t stepFr
          float kp2,
          float kp3,
          float kp4,
-         Double_t &invpT){
+         Double_t &invpT,
+         Double_t &dErec,
+         std::string Energy_smear){
   const Double_t kBGStop=0.02;
   Double_t mass2=mass*mass;
   //p*=q;
@@ -174,6 +182,16 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Double_t stepFr
   Double_t p2=p*p;
   Double_t Ein=TMath::Sqrt(p2+mass2);
   Double_t dP= dPdxEulerStep(p,mass,xTimesRho,stepFraction,bg,kp0,kp1,kp2,kp3,kp4);
+  if(Energy_smear=="landau")
+  {
+    //std::cout<<"dP: "<<dP;
+    dP=gRandom->Landau(dP,abs(dP/20));
+    //std::cout<<"dPsmear: "<<dP<<std::endl;
+  }
+  if(Energy_smear=="gauss")
+  {
+    dP=gRandom->Gaus(dP,abs(dP/20));
+  }
   if (dP==0) return kFALSE;
   Double_t pOut=p+dP;
   if ((pOut/mass)<kBGStop) return kFALSE;
@@ -209,6 +227,7 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Double_t stepFr
   Double_t cP4=1.;
   if ((xTimesRho != 0.) && (beta2 < 1.)) {
     Double_t dE=Eout-Ein;
+    dErec=dE;
     if ( (1.+ dE/p2*(dE + 2*Ein)) < 0. ) return kFALSE;
     cP4 = 1./TMath::Sqrt(1.+ dE/p2*(dE + 2*Ein));  //A precise formula by Ruben !
     //if (TMath::Abs(fP4*cP4)>100.) return kFALSE; //Do not track below 10 MeV/c -dsiable controlled by the BG cut
@@ -241,7 +260,7 @@ Iter select_randomly(Iter start, Iter end) {
 }
 
 
-Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVectorD parvec, Double_t kAlmost0, Double_t kAlmost1, int fPrintLevel, int dir, Bool_t InPlane)
+Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVectorD parvec, Double_t kAlmost0, Double_t kAlmost1, int fPrintLevel, int dir, Bool_t InPlane, Double_t& dErec ,Double_t &dxyzrec, Bool_t Energy_loss, std::string CorrTime)
 {
             ////Prepare all the parameters for the prediction
 
@@ -388,20 +407,25 @@ Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVe
           PPred[4][2] += b42;
 
           double deltaxyz = dir * sqrt(pow((dz),2)+pow((dz*dy2dz),2)+pow((tanlambda/curvature*rot),2));
-          std::cout<<"deltaxyz dist"<<deltaxyz<<std::endl;
+          dxyzrec=deltaxyz;
+          //std::cout<<"deltaxyz dist"<<deltaxyz<<std::endl;
 
-          deltaxyz = rot*dir /abs( curvature * cos(atan(tanlambda)));
-          std::cout<<"deltaxyz curv"<<deltaxyz<<std::endl;
+          //double deltaxyz = rot*dir /abs( curvature * cos(atan(tanlambda)));
+          
+          //std::cout<<"deltaxyz curv"<<deltaxyz<<std::endl;
 
           double p = sqrt(pow(parvec[3]/parvec[4],2)+pow(1/parvec[4],2));
 
           
           
-          if(InPlane) 
+          if(InPlane && Energy_loss && CorrTime!="after") 
           {
-          Bool_t checkstatus= CorrectForMeanMaterial(-deltaxyz*rho,muon_mass,0.005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,predstep,PPred);
+          //std::cout<<"deltaxyz Kalman:"<<deltaxyz<<std::endl;
+          Bool_t checkstatus= CorrectForMeanMaterial(-deltaxyz*rho,muon_mass,0.005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,predstep,PPred,dErec,dir);
+          //std::cout<<"I'm correcting"<<std::endl;
           return checkstatus;
           }
+          
 
           return 1.;
 }
