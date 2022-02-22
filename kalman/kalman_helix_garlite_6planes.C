@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <vector>
 #include "correctMeanmaterial.h"
+#include "helix_new.h"
 #include <ctime>
 
 using namespace ROOT::Math;
@@ -369,7 +370,7 @@ int Helix_Fit(const std::vector<XYZVector>  TPCClusters,
   size_t InitialTPNTPCClusters = 100;
   size_t nTPCClusters = TPCClusters.size();
   size_t firstTPCCluster = 0;
-  size_t farTPCCluster = TMath::Min(nTPCClusters-1, InitialTPNTPCClusters);;
+  size_t farTPCCluster = TMath::Min(nTPCClusters-1, InitialTPNTPCClusters);
   size_t intTPCCluster = farTPCCluster/2;
   size_t lastTPCCluster = nTPCClusters-1;
   
@@ -513,7 +514,11 @@ void KalmanFit(
                    std::vector<double> invpTplane,
                    std::string CorrTime,
                    Bool_t Fixed_Cov,
-                   Bool_t Smear
+                   Bool_t Smear,
+                   double xy_smear,
+                   TMatrixD &P_seed,
+                   std::string Seedtype
+
 
                    
 
@@ -575,21 +580,40 @@ void KalmanFit(
       P.Zero();
       if (!Smear)
       {
-        P[0][0] = TMath::Sq(0.1);   // initial position uncertainties -- y 1
-        P[1][1] = TMath::Sq(0.1);   // and x 1
-        P[2][2] = TMath::Sq(3);  // sinphi uncertainty 0.5
-        P[3][3] = TMath::Sq(3);  // tanlambda uncertainty 0.5
-        P[4][4] = TMath::Sq(75);  // q/pT uncertainty 0.5
+        P[0][0] = TMath::Sq(0.0000001);   // initial position uncertainties -- y 0.1
+        P[1][1] = TMath::Sq(0.0000001);   // and x 0.1
+        P[2][2] = TMath::Sq(0.0032);  // sinphi uncertainty 3
+        P[3][3] = TMath::Sq(0.000034);  // tanlambda uncertainty 3
+        P[4][4] = TMath::Sq(0.073);  // q/pT uncertainty 75
       }
-      else
+      else if (xy_smear == 0.1)
       {
-        P[0][0] = TMath::Sq(20);   // initial position uncertainties -- y 1
-        P[1][1] = TMath::Sq(20);   // and x 1
-        P[2][2] = TMath::Sq(3);  // sinphi uncertainty 0.5
-        P[3][3] = TMath::Sq(3);  // tanlambda uncertainty 0.5
-        P[4][4] = TMath::Sq(70);  // q/pT uncertainty 0.5
+        P[0][0] = TMath::Sq(0.15);   // initial position uncertainties -- y 1
+        P[1][1] = TMath::Sq(0.15);   // and x 1
+        P[2][2] = TMath::Sq(0.0033);  // sinphi uncertainty 0.5
+        P[3][3] = TMath::Sq(0.001);  // tanlambda uncertainty 0.5
+        P[4][4] = TMath::Sq(0.073);  // q/pT uncertainty 0.5
+      }
+      else if (xy_smear == 0.5)
+      {
+        P[0][0] = TMath::Sq(0.5);   // initial position uncertainties -- y 1
+        P[1][1] = TMath::Sq(0.5);   // and x 1
+        P[2][2] = TMath::Sq(0.008);  // sinphi uncertainty 0.5
+        P[3][3] = TMath::Sq(0.004);  // tanlambda uncertainty 0.5
+        P[4][4] = TMath::Sq(0.078);  // q/pT uncertainty 0.5
+      }
+      if(Seedtype=="alice")
+      {
+        P = P_seed;
       }
       if(dir<0 &&  !Fixed_Cov) P=Pt.at(Pt.size()-1);
+
+      if (fPrintLevel > 1)
+            {
+              std::cout << "P0 guess Matrix: " << std::endl;
+              P.Print();
+            }
+
       TMatrixD PPred(5,5);
       PPred.Zero();
 
@@ -952,23 +976,25 @@ void kalman_helix_garlite_6planes(size_t nevents)
       //std::cout << std::setprecision(17);
       
 
-      TFile fs("./toygarlite/6planes/smearx1y1_realseed_elossgausscorr_fixedp0.7/garlitetest_smearx1y1_realseed_elossgausscorr_r200_200_fixedp0.7.root","recreate");
+      TFile fs("./toygarlite/6planes/smearx05y05_aliceseed_elosscorr_fixedp0.7/garlitetest_smearx05y05_aliceseed_elosscorr_r05_05_fixedp0.7.root","recreate");
       //TFile fs("test.root","recreate");
       TTree t1s("t1s","helix simple tree");
 
       ///Parameters regulating simulation
-      std::string Seedtype = "real"; //perfect or real
-      std::string Energy_Smear = "gauss"; //gauss or landau
+      std::string Seedtype = "alice"; //perfect, real or alice
+      std::string Energy_Smear = ""; //gauss or landau
       std::string CorrTime = ""; //select if apply energy loss correction before or after a posteriori step. Either "after" or anything else for "before"
       Bool_t Backward_separate = false; // apply Kalman filter backwards reusing the Helix fit and not the final point in the forward Kalman
       Bool_t Fixed_Cov = true; // apply Kalman filter backwards using fixed guess values for the covariance matrix
       Bool_t Energy_loss_corr = true;
       Bool_t Energy_loss = true;
       Bool_t Smear = true;
+      Bool_t Seed_only = false;
+      double xy_smear = 0.5;
       double  fixedp = 0.7; ///GeV/c Set to 0 or negative value if you don't want it fixed
       ////Kalman
-      double Ry = TMath::Sq(200);//TMath::Sq(2);//TMath::Sq(0.01);//TMath::Sq(3);
-      double Rx = TMath::Sq(200);//TMath::Sq(0.01);//TMath::Sq(0.01); //1.1921e-07
+      double Ry = TMath::Sq(0.5);//TMath::Sq(2);//TMath::Sq(0.01);//TMath::Sq(3);
+      double Rx = TMath::Sq(0.5);//TMath::Sq(0.01);//TMath::Sq(0.01); //1.1921e-07
       double Ryx = TMath::Sq(0);
 
       
@@ -1033,6 +1059,7 @@ void kalman_helix_garlite_6planes(size_t nevents)
       ////FWD
       XYZVector xyz_seed;
       double sinphi_seed,tanlambda_seed,curvature_seed, phi_seed, lambdaGar_seed;
+      TMatrixD P_seed(5,5);
       std::vector<double> xht,yht,zht,zpost;
       std::vector<TVectorD> parvect; //(5)
       std::vector<TVectorD> predstept; //(5)
@@ -1043,6 +1070,7 @@ void kalman_helix_garlite_6planes(size_t nevents)
       ///BKW
       XYZVector xyz_seed_bkw;
       double sinphi_seed_bkw,tanlambda_seed_bkw,curvature_seed_bkw;
+      TMatrixD P_seed_bkw(5,5);
       std::vector<double> xht_bkw,yht_bkw,zht_bkw,zpost_bkw;
       std::vector<TVectorD> parvect_bkw; //(5)
       std::vector<TVectorD> predstept_bkw; //(5)
@@ -1084,38 +1112,48 @@ void kalman_helix_garlite_6planes(size_t nevents)
       
 
       ////Kalman
-      t1s.Branch("xht",&xht);
-      t1s.Branch("yht",&yht);
-      t1s.Branch("zht",&zht);
-      t1s.Branch("zpost",&zpost);
-      t1s.Branch("parvect",&parvect);
-      t1s.Branch("predstept",&predstept);
-      t1s.Branch("Pt",&Pt);
-      t1s.Branch("PPredt",&PPredt);
-      t1s.Branch("Rt",&Rt);
+      if(!Seed_only)
+      {
+        t1s.Branch("xht",&xht);
+        t1s.Branch("yht",&yht);
+        t1s.Branch("zht",&zht);
+        t1s.Branch("zpost",&zpost);
+        t1s.Branch("parvect",&parvect);
+        t1s.Branch("predstept",&predstept);
+        t1s.Branch("Pt",&Pt);
+        t1s.Branch("PPredt",&PPredt);
+        t1s.Branch("Rt",&Rt);
+      }
+
       t1s.Branch("xyz_seed",&xyz_seed);
       t1s.Branch("sinphi_seed",&sinphi_seed);
       t1s.Branch("phi_seed",&phi_seed);
       t1s.Branch("lambdaGar_seed",&lambdaGar_seed);
       t1s.Branch("tanlambda_seed",&tanlambda_seed);
       t1s.Branch("curvature_seed",&curvature_seed);
+      t1s.Branch("P_seed",&P_seed);
       t1s.Branch("dEreco",&dEreco);
       t1s.Branch("dxreco",&dxreco);
       t1s.Branch("hitid",&hitid);
+      
 
-      t1s.Branch("xht_bkw",&xht_bkw);
-      t1s.Branch("yht_bkw",&yht_bkw);
-      t1s.Branch("zht_bkw",&zht_bkw);
-      t1s.Branch("zpost_bkw",&zpost_bkw);
-      t1s.Branch("parvect_bkw",&parvect_bkw);
-      t1s.Branch("predstept_bkw",&predstept_bkw);
-      t1s.Branch("Pt_bkw",&Pt_bkw);
-      t1s.Branch("PPredt_bkw",&PPredt_bkw);
-      t1s.Branch("Rt_bkw",&Rt_bkw);
-      t1s.Branch("xyz_seed_bkw",&xyz_seed_bkw);
-      t1s.Branch("sinphi_seed_bkw",&sinphi_seed_bkw);
-      t1s.Branch("tanlambda_seed_bkw",&tanlambda_seed_bkw);
-      t1s.Branch("curvature_seed_bkw",&curvature_seed_bkw);
+      if(!Seed_only)
+      {
+        t1s.Branch("xht_bkw",&xht_bkw);
+        t1s.Branch("yht_bkw",&yht_bkw);
+        t1s.Branch("zht_bkw",&zht_bkw);
+        t1s.Branch("zpost_bkw",&zpost_bkw);
+        t1s.Branch("parvect_bkw",&parvect_bkw);
+        t1s.Branch("predstept_bkw",&predstept_bkw);
+        t1s.Branch("Pt_bkw",&Pt_bkw);
+        t1s.Branch("PPredt_bkw",&PPredt_bkw);
+        t1s.Branch("Rt_bkw",&Rt_bkw);
+        t1s.Branch("xyz_seed_bkw",&xyz_seed_bkw);
+        t1s.Branch("sinphi_seed_bkw",&sinphi_seed_bkw);
+        t1s.Branch("tanlambda_seed_bkw",&tanlambda_seed_bkw);
+        t1s.Branch("curvature_seed_bkw",&curvature_seed_bkw);
+        t1s.Branch("P_seed_bkw",&P_seed_bkw);
+      }
       
      
       
@@ -1211,7 +1249,7 @@ void kalman_helix_garlite_6planes(size_t nevents)
             
             if (TMath::Abs(f2) >= kAlmost1) 
             {
-              std::cout<<"f2: "<<f2<<std::endl;
+              std::cout<<"InGAr f2: "<<f2<<std::endl;
               status= false;
               break;
             }
@@ -1473,8 +1511,8 @@ void kalman_helix_garlite_6planes(size_t nevents)
 
           XYZVector xyz_plane_temp_sm;
 
-          xyz_plane_temp_sm.SetX(gRandom->Gaus(xyzplanecontainer[p].at(recsub.at(l)).X(),1));
-          xyz_plane_temp_sm.SetY(gRandom->Gaus(xyzplanecontainer[p].at(recsub.at(l)).Y(),1));
+          xyz_plane_temp_sm.SetX(gRandom->Gaus(xyzplanecontainer[p].at(recsub.at(l)).X(),xy_smear));
+          xyz_plane_temp_sm.SetY(gRandom->Gaus(xyzplanecontainer[p].at(recsub.at(l)).Y(),xy_smear));
           xyz_plane_temp_sm.SetZ(xyzplanecontainer[p].at(recsub.at(l)).Z());
 
           //std::cout<<"X: "<<xyz_plane_temp_sm.X()<<" Y: "<<xyz_plane_temp_sm.Y()<<" Z: "<<xyz_plane_temp_sm.Z()<<std::endl;
@@ -1528,11 +1566,23 @@ void kalman_helix_garlite_6planes(size_t nevents)
         else if(Seedtype=="real")
           {
             ///Helix Fit Seed
+
             if(Smear==kFALSE) Helix_Fit(xyz_plane,xyz_seed,curvature_seed,lambdaGar_seed,phi_seed,forward,printlevelHelix);
             else Helix_Fit(xyz_plane_sm,xyz_seed,curvature_seed,lambdaGar_seed,phi_seed,forward,printlevelHelix);
             sinphi_seed = TMath::Sin(phi_seed);
             tanlambda_seed = TMath::Tan(lambdaGar_seed);
             //std::cout<<"checkKal3"<<std::endl;
+          }
+        else if(Seedtype=="alice")
+          {
+            ///Helix Fit Seed as done in Alice
+
+            //std::cout << "initial MC curvature, sinphi, tanlambda: " << invpT_plane.at(0)*((0.299792458e-2)*B) << " " << sinphi_plane.at(0) << " " << tanlambda_plane.at(0) << std::endl;
+            if(Smear==kFALSE) makeSeed(xyz_plane,xyz_seed,curvature_seed,tanlambda_seed,sinphi_seed,forward,printlevelHelix,P_seed,0.0000001);
+            else makeSeed(xyz_plane_sm,xyz_seed,curvature_seed,tanlambda_seed,sinphi_seed,forward,printlevelHelix,P_seed,xy_smear);
+            //std::cout << "seed curvature, sinphi, tanlambda: " << curvature_seed << " " << sinphi_seed << " " << tanlambda_seed << std::endl;
+            //std::cout << "P0 guess Matrix: " << std::endl;
+            //P_seed.Print();
           }
         else
           {
@@ -1543,59 +1593,79 @@ void kalman_helix_garlite_6planes(size_t nevents)
             tanlambda_seed=0.01;
           }
         
-
-        if(printlevelKalman>0) std::cout << " Real Values: y " << xyz_plane.at(0).Y() << " x " << xyz_plane.at(0).X() << " sinphi " << sinphi_plane.at(0) << " tanlambda " << tanlambda_plane.at(0) << " 1/pT " << invpT_plane.at(0) << " p: " <<sqrt(pxyz_plane.at(0).Mag2())<< std::endl;
-        if(Smear==kFALSE) KalmanFit(xht,yht,zht,parvect,predstept,Pt,PPredt,Rt,zpost,xyz_plane,sinphi_plane,Ry,Rx,Ryx,xyz_seed,tanlambda_seed,curvature_seed,sinphi_seed,forward,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane,CorrTime,Fixed_Cov,Smear);
-        else KalmanFit(xht,yht,zht,parvect,predstept,Pt,PPredt,Rt,zpost,xyz_plane_sm,sinphi_plane,Ry,Rx,Ryx,xyz_seed,tanlambda_seed,curvature_seed,sinphi_seed,forward,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane,CorrTime,Fixed_Cov,Smear);
-        //std::cout<<"status= "<<status<<std::endl;
-        //std::cout<<"checkKal4"<<std::endl;
-        
-        //////BKW
-        //std::cout<<xht.size()<<" "<<xyz_plane.size()<<" "<<nHits_perPlane.size()<<std::endl;
-        //std::cout<<"checkKal5"<<std::endl;
-        if(!parvect.empty())
+        if(!Seed_only)
         {
-        xyz_seed_bkw.SetX(parvect.at(parvect.size()-1)[1]);
-        xyz_seed_bkw.SetY(parvect.at(parvect.size()-1)[0]);
-        //xyz_seed_bkw.SetZ(zht.at(xht.size()-1));
-        xyz_seed_bkw.SetZ(xyz_plane.at(xyz_plane.size()-1).Z());
-        curvature_seed_bkw=parvect.at(parvect.size()-1)[4]*(0.5*0.299792458e-2);
-        sinphi_seed_bkw=parvect.at(parvect.size()-1)[2];
-        tanlambda_seed_bkw=parvect.at(parvect.size()-1)[3];
 
-        
-        std::vector<XYZVector> xyz_plane_bkw;
-        std::vector<double> invpT_plane_bkw;
+          if(printlevelKalman>0) std::cout << " Real Values: y " << xyz_plane.at(0).Y() << " x " << xyz_plane.at(0).X() << " sinphi " << sinphi_plane.at(0) << " tanlambda " << tanlambda_plane.at(0) << " 1/pT " << invpT_plane.at(0) << " p: " <<sqrt(pxyz_plane.at(0).Mag2())<< std::endl;
+          if(Smear==kFALSE) KalmanFit(xht,yht,zht,parvect,predstept,Pt,PPredt,Rt,zpost,xyz_plane,sinphi_plane,Ry,Rx,Ryx,xyz_seed,tanlambda_seed,curvature_seed,sinphi_seed,forward,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane,CorrTime,Fixed_Cov,Smear,xy_smear,P_seed,Seedtype);
+          else KalmanFit(xht,yht,zht,parvect,predstept,Pt,PPredt,Rt,zpost,xyz_plane_sm,sinphi_plane,Ry,Rx,Ryx,xyz_seed,tanlambda_seed,curvature_seed,sinphi_seed,forward,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane,CorrTime,Fixed_Cov,Smear,xy_smear,P_seed,Seedtype);
+          //std::cout<<"status= "<<status<<std::endl;
+          //std::cout<<"checkKal4"<<std::endl;
+          
+          //////BKW
+          //std::cout<<xht.size()<<" "<<xyz_plane.size()<<" "<<nHits_perPlane.size()<<std::endl;
+          //std::cout<<"checkKal5"<<std::endl;
+          if(!parvect.empty())
+          {
+            
+            double backwards=-1.;
+            std::vector<XYZVector> xyz_plane_bkw;
+            if(Smear==kFALSE) xyz_plane_bkw=xyz_plane;
+            else xyz_plane_bkw=xyz_plane_sm;
 
-        if(Smear==kFALSE) xyz_plane_bkw=xyz_plane;
-        else xyz_plane_bkw=xyz_plane_sm;
+            std::reverse(xyz_plane_bkw.begin(),xyz_plane_bkw.end());
 
-        invpT_plane_bkw=invpT_plane;
+            if(Seedtype=="alice")
+              {
+                ///Helix Fit Seed as done in Alice
 
-        std::reverse(xyz_plane_bkw.begin(),xyz_plane_bkw.end());
-        std::reverse(invpT_plane_bkw.begin(),invpT_plane_bkw.end());
-        std::vector<double> sinphi_plane_bkw=sinphi_plane;
-        std::reverse(sinphi_plane_bkw.begin(),sinphi_plane_bkw.end());
-        Pt_bkw=Pt;
-      
-        double backwards=-1.;
+                //std::cout<<"initial curvature, sinphi, tanlambda Kalman seed backwards: "<<curvature_seed_bkw<<" "<<sinphi_seed_bkw<<" "<<tanlambda_seed_bkw<<std::endl;
+                //std::cout << "initial MC curvature, sinphi, tanlambda: " << invpT_plane.at(0)*((0.299792458e-2)*B) << " " << sinphi_plane.at(0) << " " << tanlambda_plane.at(0) << std::endl;
+                if(Smear==kFALSE) makeSeed(xyz_plane_bkw,xyz_seed_bkw,curvature_seed_bkw,tanlambda_seed_bkw,sinphi_seed_bkw,backwards,printlevelHelix,P_seed_bkw,0.0000001);
+                else makeSeed(xyz_plane_bkw,xyz_seed_bkw,curvature_seed_bkw,tanlambda_seed_bkw,sinphi_seed_bkw,backwards,printlevelHelix,P_seed_bkw,xy_smear); 
+              }
+            xyz_seed_bkw.SetX(parvect.at(parvect.size()-1)[1]);
+            xyz_seed_bkw.SetY(parvect.at(parvect.size()-1)[0]);
+            //xyz_seed_bkw.SetZ(zht.at(xht.size()-1));
+            xyz_seed_bkw.SetZ(xyz_plane.at(xyz_plane.size()-1).Z());
+            curvature_seed_bkw=parvect.at(parvect.size()-1)[4]*(0.5*0.299792458e-2);
+            sinphi_seed_bkw=parvect.at(parvect.size()-1)[2];
+            tanlambda_seed_bkw=parvect.at(parvect.size()-1)[3];
 
-        if (Backward_separate)
-        {
-          //std::cout<<"initial xyz, curvature, sinphi, tanlambda Kalman seed backwards: "<<xyz_seed_bkw.X()<<" "<<xyz_seed_bkw.Y()<<" "<<xyz_seed_bkw.Z()<<" "<<curvature_seed_bkw<<" "<<sinphi_seed_bkw<<" "<<tanlambda_seed_bkw<<std::endl;
-          //std::cout<<"initial curvature, phi, lambda Helix seed forward: "<<curvature_seed<<" "<<phi_seed<<" "<<lambdaGar_seed<<std::endl;
-          Helix_Fit(xyz_plane_bkw,xyz_seed_bkw,curvature_seed_bkw,tanlambda_seed_bkw,sinphi_seed_bkw,backwards,printlevelHelix);
-          curvature_seed_bkw=backwards*curvature_seed_bkw;
-          sinphi_seed_bkw=backwards*TMath::Sin(sinphi_seed_bkw);
-          tanlambda_seed_bkw=backwards*TMath::Tan(tanlambda_seed_bkw);
-          //std::cout<<"initial xyz, curvature, sinphi, tanlambda Helix seed backwards: "<<xyz_seed_bkw.X()<<" "<<xyz_seed_bkw.Y()<<" "<<xyz_seed_bkw.Z()<<" "<<curvature_seed_bkw<<" "<<sinphi_seed_bkw<<" "<<tanlambda_seed_bkw<<std::endl;
-        }
-                //std::cout<<xyz_seed_bkw.X()<<" "<<xyz_seed_bkw.X()<<" "<<xyz_seed_bkw.X()<<" "<<curvature_seed<<" "<<phi_seed_bkw<<" "<<lambda_seed_bkw<<std::endl;
-        //std::cout<<" "<<std::endl<<std::endl;
-        
-        
-        KalmanFit(xht_bkw,yht_bkw,zht_bkw,parvect_bkw,predstept_bkw,Pt_bkw,PPredt_bkw,Rt_bkw,zpost_bkw,xyz_plane_bkw,sinphi_plane_bkw,Ry,Rx,Ryx,xyz_seed_bkw,tanlambda_seed_bkw,curvature_seed_bkw,sinphi_seed_bkw,backwards,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane_bkw,CorrTime,Fixed_Cov,Smear);
-        //std::cout<<"status= "<<status<<std::endl;
+            
+            
+            std::vector<double> invpT_plane_bkw;
+
+            
+
+            invpT_plane_bkw=invpT_plane;
+
+            
+            std::reverse(invpT_plane_bkw.begin(),invpT_plane_bkw.end());
+            std::vector<double> sinphi_plane_bkw=sinphi_plane;
+            std::reverse(sinphi_plane_bkw.begin(),sinphi_plane_bkw.end());
+            Pt_bkw=Pt;
+          
+            
+
+            if (Backward_separate)
+            {
+              //std::cout<<"initial xyz, curvature, sinphi, tanlambda Kalman seed backwards: "<<xyz_seed_bkw.X()<<" "<<xyz_seed_bkw.Y()<<" "<<xyz_seed_bkw.Z()<<" "<<curvature_seed_bkw<<" "<<sinphi_seed_bkw<<" "<<tanlambda_seed_bkw<<std::endl;
+              //std::cout<<"initial curvature, phi, lambda Helix seed forward: "<<curvature_seed<<" "<<phi_seed<<" "<<lambdaGar_seed<<std::endl;
+              Helix_Fit(xyz_plane_bkw,xyz_seed_bkw,curvature_seed_bkw,tanlambda_seed_bkw,sinphi_seed_bkw,backwards,printlevelHelix);
+              curvature_seed_bkw=backwards*curvature_seed_bkw;
+              sinphi_seed_bkw=backwards*TMath::Sin(sinphi_seed_bkw);
+              tanlambda_seed_bkw=backwards*TMath::Tan(tanlambda_seed_bkw);
+              //std::cout<<"initial xyz, curvature, sinphi, tanlambda Helix seed backwards: "<<xyz_seed_bkw.X()<<" "<<xyz_seed_bkw.Y()<<" "<<xyz_seed_bkw.Z()<<" "<<curvature_seed_bkw<<" "<<sinphi_seed_bkw<<" "<<tanlambda_seed_bkw<<std::endl;
+            }
+                  //std::cout<<xyz_seed_bkw.X()<<" "<<xyz_seed_bkw.X()<<" "<<xyz_seed_bkw.X()<<" "<<curvature_seed<<" "<<phi_seed_bkw<<" "<<lambda_seed_bkw<<std::endl;
+                  //std::cout<<" "<<std::endl<<std::endl;
+          
+          
+
+          KalmanFit(xht_bkw,yht_bkw,zht_bkw,parvect_bkw,predstept_bkw,Pt_bkw,PPredt_bkw,Rt_bkw,zpost_bkw,xyz_plane_bkw,sinphi_plane_bkw,Ry,Rx,Ryx,xyz_seed_bkw,tanlambda_seed_bkw,curvature_seed_bkw,sinphi_seed_bkw,backwards,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane_bkw,CorrTime,Fixed_Cov,Smear,xy_smear,P_seed_bkw,Seedtype);
+          //std::cout<<"status= "<<status<<std::endl;
+          }
         }
         //std::cout<<"checkKal6"<<std::endl;
         
@@ -1605,7 +1675,7 @@ void kalman_helix_garlite_6planes(size_t nevents)
 
       //std::cout<<status<<std::endl;
 
-      if(parvect.empty() || parvect_bkw.empty()) status=false;
+      if((parvect.empty() || parvect_bkw.empty()) && !Seed_only) status=false;
       //std::cout<<parvect.size()<<std::endl;
       //std::cout<<"checkKal8"<<std::endl;
       //std::cout<<"status "<<status<<std::endl;
