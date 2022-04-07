@@ -87,6 +87,7 @@
         "kalman_helix_garlite_5planes.C": "cpp",
         "kalman_helix_garlite_6planes.C": "cpp",
         "kalman_helix_garlite_7planesfull.C": "cpp",
-        "kalman_helix_garlite_7planesshort.C": "cpp"
+        "kalman_helix_garlite_7planesshort.C": "cpp",
+        "kalman_helix_garlite_6planes_ms.C": "cpp"
     }
 }

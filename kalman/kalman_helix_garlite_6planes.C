@@ -976,25 +976,25 @@ void kalman_helix_garlite_6planes(size_t nevents)
       //std::cout << std::setprecision(17);
       
 
-      TFile fs("./toygarlite/6planes/smearx05y05_aliceseed_elosscorr_fixedp0.7/garlitetest_smearx05y05_aliceseed_elosscorr_r05_05_fixedp0.7.root","recreate");
+      TFile fs("./toygarlite/6planes/nosmear_aliceseed_elossgausscorr_fixedp0.7/garlitetest_nosmear_aliceseed_elossgausscorr_r0005_0005_fixedp0.7.root","recreate");
       //TFile fs("test.root","recreate");
       TTree t1s("t1s","helix simple tree");
 
       ///Parameters regulating simulation
       std::string Seedtype = "alice"; //perfect, real or alice
-      std::string Energy_Smear = ""; //gauss or landau
+      std::string Energy_Smear = "gauss"; //gauss or landau
       std::string CorrTime = ""; //select if apply energy loss correction before or after a posteriori step. Either "after" or anything else for "before"
       Bool_t Backward_separate = false; // apply Kalman filter backwards reusing the Helix fit and not the final point in the forward Kalman
       Bool_t Fixed_Cov = true; // apply Kalman filter backwards using fixed guess values for the covariance matrix
       Bool_t Energy_loss_corr = true;
       Bool_t Energy_loss = true;
-      Bool_t Smear = true;
+      Bool_t Smear = false;
       Bool_t Seed_only = false;
       double xy_smear = 0.5;
       double  fixedp = 0.7; ///GeV/c Set to 0 or negative value if you don't want it fixed
       ////Kalman
-      double Ry = TMath::Sq(0.5);//TMath::Sq(2);//TMath::Sq(0.01);//TMath::Sq(3);
-      double Rx = TMath::Sq(0.5);//TMath::Sq(0.01);//TMath::Sq(0.01); //1.1921e-07
+      double Ry = TMath::Sq(0.005);//TMath::Sq(2);//TMath::Sq(0.01);//TMath::Sq(3);
+      double Rx = TMath::Sq(0.005);//TMath::Sq(0.01);//TMath::Sq(0.01); //1.1921e-07
       double Ryx = TMath::Sq(0);
 
       
@@ -1016,11 +1016,12 @@ void kalman_helix_garlite_6planes(size_t nevents)
       double rho= 1.032;   //g/cm^3
       double X1=2.49;
       double X0=0.1469;
-      double muon_mass=0.1056583755; //GeV/c^2
+      double muon_mass=0.1056583755; //GeV/c^2   ///material properties are for typical plastic polymere scintillator: polyvinyltoluene
       double a=0.1610;
       double m=3.24;
       double hw=21.54e-9;
       double Z=0.085+6*0.915;
+      double xx0 = 42.54;  //radiation length in cm (different from Alice's code where it's xx0=1/X0 in cm^-1)
 
       int printlevelKalman = 0;
       int printlevelHelix = 0;

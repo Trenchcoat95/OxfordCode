@@ -185,12 +185,20 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Double_t stepFr
   if(Energy_smear=="landau")
   {
     //std::cout<<"dP: "<<dP;
-    dP=gRandom->Landau(dP,abs(dP/20));
-    //std::cout<<"dPsmear: "<<dP<<std::endl;
+    Double_t sign = TMath::Sign(1,dP);
+    dP=gRandom->Landau(abs(dP),0.15*abs(dP));
+    if (dP<0.0001) dP=0.0001;
+    dP*=sign;
+    //std::cout<<" dPsmear: "<<dP<<std::endl;
   }
   if(Energy_smear=="gauss")
   {
-    dP=gRandom->Gaus(dP,abs(dP/20));
+    //std::cout<<"dP: "<<dP;
+    Double_t sign = TMath::Sign(1,dP);
+    dP=gRandom->Gaus(abs(dP),0.15*abs(dP));
+    if (dP<0.0001) dP=0.0001;
+    dP*=sign;
+    //std::cout<<" dPsmear: "<<dP<<std::endl;
   }
   if (dP==0) return kFALSE;
   Double_t pOut=p+dP;
@@ -239,6 +247,49 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Double_t stepFr
   //Applying the corrections*****************************
   
   invpT  *= cP4;
+  //CheckCovariance();
+  return kTRUE;
+}
+
+Bool_t CorrectForMeanMaterialMS(Double_t xOverX0,Double_t mass, Double_t p, float bg,
+         Double_t &sinphi,
+         Double_t &tanlambda,
+         Double_t &invpT
+         ){
+  const Double_t kBGStop=0.02;
+  Double_t mass2=mass*mass;
+  //p*=q;
+  if ((p/mass)<kBGStop) return kFALSE;
+  Double_t p2=p*p;
+ 
+  Double_t beta2=p2/(p2+mass2);
+  //
+  
+  //
+  //Calculating the multiple scattering corrections******************
+
+  Double_t cC22 = 0.;
+  Double_t cC33 = 0.;
+  //Double_t cC43 = 0.;
+  Double_t cC44 = 0.;
+
+  
+    //Double_t theta2=1.0259e-6*14*14/28/(beta2*p2)*TMath::Abs(d)*9.36*2.33;
+  Double_t theta2=0.0136*0.0136/(beta2*p2)*TMath::Abs(xOverX0);
+    
+  double lt = 1+0.038*TMath::Log(TMath::Abs(xOverX0));
+  if (lt>0) theta2 *= lt*lt;
+    
+    //theta2 *= q*q;    // q=2 particle
+  if(theta2>TMath::Pi()*TMath::Pi()) return kFALSE;
+  cC22 = theta2*((1.-sinphi)*(1.+sinphi))*(1. + tanlambda*tanlambda);
+  cC33 = theta2*(1. + tanlambda*tanlambda)*(1. + tanlambda*tanlambda);
+  //cC43 = theta2*tanlambda*invpT*(1. + tanlambda*tanlambda);
+  cC44 = theta2*tanlambda*invpT*tanlambda*invpT;
+  
+  
+
+
   //CheckCovariance();
   return kTRUE;
 }
