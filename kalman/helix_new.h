@@ -1,3 +1,6 @@
+#pragma once
+#ifndef HELIXNEW_H_
+#define HELIXNEW_H_
 #include <iostream>
 #include "TVectorD.h"
 #include "TMatrix.h"
@@ -9,6 +12,7 @@
 #include "TRandom.h"
 #include "TF2.h"
 #include "Math/Vector3D.h"
+#include "correctMeanmaterial.h"
 #include <algorithm>
 #include <vector>
 using namespace ROOT::Math;
@@ -172,3 +176,21 @@ void makeSeed(const std::vector<XYZVector>  TPCClusters,
  
   
 }
+
+void SeedMaterialCorrection(Double_t xTimesRho, Double_t mass, Float_t stepFraction, Double_t p, float bg,
+         float kp0,
+         float kp1,
+         float kp2,
+         float kp3,
+         float kp4,
+         TVectorD &parvec,
+         TMatrixD &P,
+         Double_t &dErec,
+         int dir,
+         std::string MS,
+         Double_t xOverX0)
+              
+{
+
+}
+#endif

@@ -517,7 +517,8 @@ void KalmanFit(
                    Bool_t Smear,
                    double xy_smear,
                    TMatrixD &P_seed,
-                   std::string Seedtype
+                   std::string Seedtype,
+                   std::string MS
 
 
                    
@@ -537,6 +538,8 @@ void KalmanFit(
       double m=3.24;
       double hw=21.54e-9;
       double Z=0.085+6*0.915;
+      double xx0 = 42.54;  //radiation length in cm (different from Alice's code where it's xx0=1/X0 in cm^-1)
+      
       
       const Double_t kAlmost1=1. - Double_t(FLT_EPSILON);
       const Double_t kAlmost0=Double_t(FLT_MIN);
@@ -760,7 +763,7 @@ void KalmanFit(
 
                     
                     Double_t dxyzrec, dErec;
-                    Bool_t checkstatus = Propagate(dz,PPred, P, predstep,  parvec, kAlmost0, kAlmost1, fPrintLevel, dir, InPlane, dErec, dxyzrec, Energy_loss, CorrTime);
+                    Bool_t checkstatus = Propagate(dz,PPred, P, predstep,  parvec, kAlmost0, kAlmost1, fPrintLevel, dir, InPlane, dErec, dxyzrec, Energy_loss, CorrTime, MS, xx0);
                       if (!checkstatus)
                       { 
                         status=checkstatus;
@@ -803,7 +806,7 @@ void KalmanFit(
                     else dzmid=Planes_Z[p*2-2]-zpos;
                     //if(dir<0)std::cout<<"dz from point to plane: "<< dzmid <<std::endl;
                     InPlane=1;
-                    Bool_t checkstatus = Propagate(dzmid,PPred, P, predstep,  parvec, kAlmost0, kAlmost1, fPrintLevel, dir, InPlane, dErec, dxyzrec, Energy_loss, CorrTime);
+                    Bool_t checkstatus = Propagate(dzmid,PPred, P, predstep,  parvec, kAlmost0, kAlmost1, fPrintLevel, dir, InPlane, dErec, dxyzrec, Energy_loss, CorrTime, MS, xx0);
                     dErectot+=dErec;
                     dxyzrectot+=dxyzrec;
                     if (!checkstatus)
@@ -819,7 +822,7 @@ void KalmanFit(
                     TVectorD predmidstep = predstep;
                     TMatrixD Predmidstep = PPred;
                     //if(dir<0) std::cout<<"dz between planes: "<< dzmid <<std::endl;
-                    checkstatus = Propagate(dzmid,PPred, Predmidstep, predstep,  predmidstep, kAlmost0, kAlmost1, fPrintLevel, dir, InPlane, dErec, dxyzrec, Energy_loss,CorrTime);
+                    checkstatus = Propagate(dzmid,PPred, Predmidstep, predstep,  predmidstep, kAlmost0, kAlmost1, fPrintLevel, dir, InPlane, dErec, dxyzrec, Energy_loss, CorrTime, MS, xx0);
                     if (!checkstatus)
                     { 
                       status=checkstatus;
@@ -832,7 +835,7 @@ void KalmanFit(
                     predmidstep = predstep;
                     Predmidstep = PPred;
                     //if(dir<0) std::cout<<"dz from plane to new point: "<< dzmid <<std::endl;
-                    checkstatus = Propagate(dzmid,PPred, Predmidstep, predstep,  predmidstep, kAlmost0, kAlmost1, fPrintLevel, dir, InPlane, dErec, dxyzrec, Energy_loss,CorrTime);
+                    checkstatus = Propagate(dzmid,PPred, Predmidstep, predstep,  predmidstep, kAlmost0, kAlmost1, fPrintLevel, dir, InPlane, dErec, dxyzrec, Energy_loss,CorrTime, MS, xx0);
                     
                     if (!checkstatus)
                     { 
@@ -917,7 +920,7 @@ void KalmanFit(
           {
           //std::cout<<"deltaxyz Kalman:"<<deltaxyz<<std::endl;
           double p = sqrt(pow(parvec[3]/parvec[4],2)+pow(1/parvec[4],2));
-          Bool_t checkstatus= CorrectForMeanMaterial(-dxyzrecord*rho,muon_mass,0.005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,parvec,PPred,dErecord,dir);
+          Bool_t checkstatus= CorrectForMeanMaterial(-dxyzrecord*rho,muon_mass,0.005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,parvec,PPred,dErecord,dir, MS,dxyzrecord/xx0);
           //std::cout<<"I'm correcting"<<std::endl;
           if (!checkstatus)
                     { 
@@ -976,25 +979,26 @@ void kalman_helix_garlite_6planes(size_t nevents)
       //std::cout << std::setprecision(17);
       
 
-      TFile fs("./toygarlite/6planes/nosmear_aliceseed_elossgausscorr_fixedp0.7/garlitetest_nosmear_aliceseed_elossgausscorr_r0005_0005_fixedp0.7.root","recreate");
+      TFile fs("./toygarlite/6planes/smearx05y05_aliceseed_elosslandaucorr_MScorr_fixedp0.7/garlitetest_smearx05y05_aliceseed_elosslandaucorr_MScorr_r05_05_fixedp0.7.root","recreate");
       //TFile fs("test.root","recreate");
       TTree t1s("t1s","helix simple tree");
 
       ///Parameters regulating simulation
       std::string Seedtype = "alice"; //perfect, real or alice
-      std::string Energy_Smear = "gauss"; //gauss or landau
+      std::string Energy_Smear = "landau"; //gauss or landau
       std::string CorrTime = ""; //select if apply energy loss correction before or after a posteriori step. Either "after" or anything else for "before"
       Bool_t Backward_separate = false; // apply Kalman filter backwards reusing the Helix fit and not the final point in the forward Kalman
       Bool_t Fixed_Cov = true; // apply Kalman filter backwards using fixed guess values for the covariance matrix
       Bool_t Energy_loss_corr = true;
       Bool_t Energy_loss = true;
-      Bool_t Smear = false;
+      Bool_t Smear = true;
       Bool_t Seed_only = false;
-      double xy_smear = 0.5;
+      std::string MS = "addMS_Smearing_Corr"; //use "addMS_Smearing" for just the multiple scattering smearing or "addMS_Smearing_Corr" to also have the correction
+      double xy_smear = 0.5; //smear due to plane precision
       double  fixedp = 0.7; ///GeV/c Set to 0 or negative value if you don't want it fixed
       ////Kalman
-      double Ry = TMath::Sq(0.005);//TMath::Sq(2);//TMath::Sq(0.01);//TMath::Sq(3);
-      double Rx = TMath::Sq(0.005);//TMath::Sq(0.01);//TMath::Sq(0.01); //1.1921e-07
+      double Ry = TMath::Sq(0.5);//TMath::Sq(2);//TMath::Sq(0.01);//TMath::Sq(3);
+      double Rx = TMath::Sq(0.5);//TMath::Sq(0.01);//TMath::Sq(0.01); //1.1921e-07
       double Ryx = TMath::Sq(0);
 
       
@@ -1381,7 +1385,8 @@ void kalman_helix_garlite_6planes(size_t nevents)
                     //std::cout<<deltaxyz<<std::endl;
                     Bool_t checkstatus=1;
                     Double_t dErec=0;
-                    if(Energy_loss) checkstatus= CorrectForMeanMaterial(-deltaxyz*rho,muon_mass,0.005,sqrt(pxyztemp.Mag2()),(sqrt(pxyztemp.Mag2())/muon_mass),rho,X0,X1,I,ZA,invpTtemp,dErec,Energy_Smear);
+                    if(Energy_loss) checkstatus= CorrectForMeanMaterial(-deltaxyz*rho,muon_mass,0.005,sqrt(pxyztemp.Mag2()),(sqrt(pxyztemp.Mag2())/muon_mass),
+                                                                        rho,X0,X1,I,ZA,sinphitemp,tanlambdatemp,invpTtemp,dErec,Energy_Smear,MS,deltaxyz/xx0);
 
                    
                     dEvecrec.push_back(dErec);
@@ -1598,8 +1603,8 @@ void kalman_helix_garlite_6planes(size_t nevents)
         {
 
           if(printlevelKalman>0) std::cout << " Real Values: y " << xyz_plane.at(0).Y() << " x " << xyz_plane.at(0).X() << " sinphi " << sinphi_plane.at(0) << " tanlambda " << tanlambda_plane.at(0) << " 1/pT " << invpT_plane.at(0) << " p: " <<sqrt(pxyz_plane.at(0).Mag2())<< std::endl;
-          if(Smear==kFALSE) KalmanFit(xht,yht,zht,parvect,predstept,Pt,PPredt,Rt,zpost,xyz_plane,sinphi_plane,Ry,Rx,Ryx,xyz_seed,tanlambda_seed,curvature_seed,sinphi_seed,forward,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane,CorrTime,Fixed_Cov,Smear,xy_smear,P_seed,Seedtype);
-          else KalmanFit(xht,yht,zht,parvect,predstept,Pt,PPredt,Rt,zpost,xyz_plane_sm,sinphi_plane,Ry,Rx,Ryx,xyz_seed,tanlambda_seed,curvature_seed,sinphi_seed,forward,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane,CorrTime,Fixed_Cov,Smear,xy_smear,P_seed,Seedtype);
+          if(Smear==kFALSE) KalmanFit(xht,yht,zht,parvect,predstept,Pt,PPredt,Rt,zpost,xyz_plane,sinphi_plane,Ry,Rx,Ryx,xyz_seed,tanlambda_seed,curvature_seed,sinphi_seed,forward,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane,CorrTime,Fixed_Cov,Smear,xy_smear,P_seed,Seedtype,MS);
+          else KalmanFit(xht,yht,zht,parvect,predstept,Pt,PPredt,Rt,zpost,xyz_plane_sm,sinphi_plane,Ry,Rx,Ryx,xyz_seed,tanlambda_seed,curvature_seed,sinphi_seed,forward,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane,CorrTime,Fixed_Cov,Smear,xy_smear,P_seed,Seedtype,MS);
           //std::cout<<"status= "<<status<<std::endl;
           //std::cout<<"checkKal4"<<std::endl;
           
@@ -1664,7 +1669,7 @@ void kalman_helix_garlite_6planes(size_t nevents)
           
           
 
-          KalmanFit(xht_bkw,yht_bkw,zht_bkw,parvect_bkw,predstept_bkw,Pt_bkw,PPredt_bkw,Rt_bkw,zpost_bkw,xyz_plane_bkw,sinphi_plane_bkw,Ry,Rx,Ryx,xyz_seed_bkw,tanlambda_seed_bkw,curvature_seed_bkw,sinphi_seed_bkw,backwards,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane_bkw,CorrTime,Fixed_Cov,Smear,xy_smear,P_seed_bkw,Seedtype);
+          KalmanFit(xht_bkw,yht_bkw,zht_bkw,parvect_bkw,predstept_bkw,Pt_bkw,PPredt_bkw,Rt_bkw,zpost_bkw,xyz_plane_bkw,sinphi_plane_bkw,Ry,Rx,Ryx,xyz_seed_bkw,tanlambda_seed_bkw,curvature_seed_bkw,sinphi_seed_bkw,backwards,status,printlevelKalman,dEreco,dxreco,Energy_loss_corr,invpT_plane_bkw,CorrTime,Fixed_Cov,Smear,xy_smear,P_seed_bkw,Seedtype,MS);
           //std::cout<<"status= "<<status<<std::endl;
           }
         }

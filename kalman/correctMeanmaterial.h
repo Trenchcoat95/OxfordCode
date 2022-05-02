@@ -1,3 +1,6 @@
+#pragma once
+#ifndef CORRECTMEANMATERIAL_H_
+#define CORRECTMEANMATERIAL_H_
 #include <iostream>
 #include "TVectorD.h"
 #include "TMatrix.h"
@@ -96,7 +99,9 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Float_t stepFra
          TVectorD &parvec,
          TMatrixD &P,
          Double_t &dErec,
-         int dir){
+         int dir,
+         std::string MS,
+         Double_t xOverX0){
   const Double_t kBGStop=0.02;
   Double_t mass2=mass*mass;
   //p*=q;
@@ -117,27 +122,26 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Float_t stepFra
   
   //
   //Calculating the multiple scattering corrections******************
+
   Double_t cC22 = 0.;
   Double_t cC33 = 0.;
   Double_t cC43 = 0.;
   Double_t cC44 = 0.;
 
-  /*
-  if (xOverX0 != 0) {
+  if (xOverX0 != 0 && MS=="addMS_Smearing_Corr") {
     //Double_t theta2=1.0259e-6*14*14/28/(beta2*p2)*TMath::Abs(d)*9.36*2.33;
     Double_t theta2=0.0136*0.0136/(beta2*p2)*TMath::Abs(xOverX0);
-    if (GetUseLogTermMS()) {
-      double lt = 1+0.038*TMath::Log(TMath::Abs(xOverX0));
-      if (lt>0) theta2 *= lt*lt;
-    }
-    theta2 *= q*q;    // q=2 particle
+    
+    double lt = 1+0.038*TMath::Log(TMath::Abs(xOverX0));
+    if (lt>0) theta2 *= lt*lt;
+    
+    //theta2 *= q*q;    // q=2 particle
     if(theta2>TMath::Pi()*TMath::Pi()) return kFALSE;
-    cC22 = theta2*((1.-fP2)*(1.+fP2))*(1. + fP3*fP3);
-    cC33 = theta2*(1. + fP3*fP3)*(1. + fP3*fP3);
-    cC43 = theta2*fP3*fP4*(1. + fP3*fP3);
-    cC44 = theta2*fP3*fP4*fP3*fP4;
+    cC22 = theta2*((1.-parvec[2])*(1.+parvec[2]))*(1. + parvec[3]*parvec[3]);
+    cC33 = theta2*(1. + parvec[3]*parvec[3])*(1. + parvec[3]*parvec[3]);
+    cC43 = theta2*parvec[3]*parvec[4]*(1. + parvec[3]*parvec[3]);
+    cC44 = theta2*parvec[3]*parvec[3]*parvec[4]*parvec[4];
   }
-  */
 
   //Calculating the energy loss corrections************************
   Double_t cP4=1.;
@@ -150,14 +154,16 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Float_t stepFra
     // Approximate energy loss fluctuation (M.Ivanov)
     const Double_t knst=0.07; // To be tuned.
     Double_t sigmadE=knst*TMath::Sqrt(TMath::Abs(dE));
-    if (dir>0) cC44 += ((sigmadE*Ein/p2*parvec[4])*(sigmadE*Ein/p2*parvec[4]));
-    else cC44 += ((sigmadE*Ein/p2*parvec[4])*(sigmadE*Ein/p2*parvec[4]));
+    cC44 += ((sigmadE*Ein/p2*parvec[4])*(sigmadE*Ein/p2*parvec[4]));
+    
   }
 
   //Applying the corrections*****************************
-  //P[2][2] += cC22;
-  //P[3][3] += cC33;
-  //P[4][3] += cC43;
+
+
+  P[2][2] += cC22;
+  P[3][3] += cC33;
+  P[4][3] += cC43;
   P[4][4] += cC44;
   parvec[4]  *= cP4;
   //if(dir>0)std::cout<<"dir="<<dir<<" cP4="<<cP4<<" cC44= "<<cC44<<std::endl;
@@ -172,9 +178,13 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Double_t stepFr
          float kp2,
          float kp3,
          float kp4,
+         Double_t &sinphi,
+         Double_t &tanlambda,
          Double_t &invpT,
          Double_t &dErec,
-         std::string Energy_smear){
+         std::string Energy_smear,
+         std::string MS,
+         Double_t xOverX0){
   const Double_t kBGStop=0.02;
   Double_t mass2=mass*mass;
   //p*=q;
@@ -213,23 +223,23 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Double_t stepFr
   //
   //Calculating the multiple scattering corrections******************
 
-
-  /*
+  Double_t cC22 = 0.;
+  Double_t cC33 = 0.;
+  Double_t cC44 = 0.;
   if (xOverX0 != 0) {
     //Double_t theta2=1.0259e-6*14*14/28/(beta2*p2)*TMath::Abs(d)*9.36*2.33;
     Double_t theta2=0.0136*0.0136/(beta2*p2)*TMath::Abs(xOverX0);
-    if (GetUseLogTermMS()) {
-      double lt = 1+0.038*TMath::Log(TMath::Abs(xOverX0));
-      if (lt>0) theta2 *= lt*lt;
-    }
-    theta2 *= q*q;    // q=2 particle
+    
+    double lt = 1+0.038*TMath::Log(TMath::Abs(xOverX0));
+    if (lt>0) theta2 *= lt*lt;
+    
+    //theta2 *= q*q;    // q=2 particle
     if(theta2>TMath::Pi()*TMath::Pi()) return kFALSE;
-    cC22 = theta2*((1.-fP2)*(1.+fP2))*(1. + fP3*fP3);
-    cC33 = theta2*(1. + fP3*fP3)*(1. + fP3*fP3);
-    cC43 = theta2*fP3*fP4*(1. + fP3*fP3);
-    cC44 = theta2*fP3*fP4*fP3*fP4;
+    cC22 = theta2*((1.-sinphi)*(1.+sinphi))*(1. + tanlambda*tanlambda);
+    cC33 = theta2*(1. + tanlambda*tanlambda)*(1. + tanlambda*tanlambda);
+    cC44 = theta2*tanlambda*tanlambda*invpT*invpT;
   }
-  */
+  
 
   //Calculating the energy loss corrections************************
   Double_t cP4=1.;
@@ -242,54 +252,24 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Double_t stepFr
     // Approximate energy loss fluctuation (M.Ivanov)
     const Double_t knst=0.07; // To be tuned.
     Double_t sigmadE=knst*TMath::Sqrt(TMath::Abs(dE));
+    cC44 += ((sigmadE*Ein/p2*invpT)*(sigmadE*Ein/p2*invpT));
   }
 
   //Applying the corrections*****************************
+  if (MS=="addMS_Smearing" || MS=="addMS_Smearing_Corr"){
+    const float kMaxP3=0.5;
+    const float kMaxP4=0.3;
+    if (TMath::Sqrt(cC44)>kMaxP4*TMath::Abs(invpT)) return kFALSE;
+    Float_t p2New=sinphi+gRandom->Gaus(0,TMath::Sqrt(cC22));
+    Float_t dp3New=gRandom->Gaus(0,TMath::Sqrt(cC33));
+    if (TMath::Abs(p2New)>1.) return kFALSE;
+    if (TMath::Abs(dp3New)>kMaxP3) return kFALSE;
+    sinphi=p2New;
+    tanlambda+=dp3New;
+    invpT+=gRandom->Gaus(0,TMath::Sqrt(cC44));
+  }
   
   invpT  *= cP4;
-  //CheckCovariance();
-  return kTRUE;
-}
-
-Bool_t CorrectForMeanMaterialMS(Double_t xOverX0,Double_t mass, Double_t p, float bg,
-         Double_t &sinphi,
-         Double_t &tanlambda,
-         Double_t &invpT
-         ){
-  const Double_t kBGStop=0.02;
-  Double_t mass2=mass*mass;
-  //p*=q;
-  if ((p/mass)<kBGStop) return kFALSE;
-  Double_t p2=p*p;
- 
-  Double_t beta2=p2/(p2+mass2);
-  //
-  
-  //
-  //Calculating the multiple scattering corrections******************
-
-  Double_t cC22 = 0.;
-  Double_t cC33 = 0.;
-  //Double_t cC43 = 0.;
-  Double_t cC44 = 0.;
-
-  
-    //Double_t theta2=1.0259e-6*14*14/28/(beta2*p2)*TMath::Abs(d)*9.36*2.33;
-  Double_t theta2=0.0136*0.0136/(beta2*p2)*TMath::Abs(xOverX0);
-    
-  double lt = 1+0.038*TMath::Log(TMath::Abs(xOverX0));
-  if (lt>0) theta2 *= lt*lt;
-    
-    //theta2 *= q*q;    // q=2 particle
-  if(theta2>TMath::Pi()*TMath::Pi()) return kFALSE;
-  cC22 = theta2*((1.-sinphi)*(1.+sinphi))*(1. + tanlambda*tanlambda);
-  cC33 = theta2*(1. + tanlambda*tanlambda)*(1. + tanlambda*tanlambda);
-  //cC43 = theta2*tanlambda*invpT*(1. + tanlambda*tanlambda);
-  cC44 = theta2*tanlambda*invpT*tanlambda*invpT;
-  
-  
-
-
   //CheckCovariance();
   return kTRUE;
 }
@@ -311,7 +291,10 @@ Iter select_randomly(Iter start, Iter end) {
 }
 
 
-Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVectorD parvec, Double_t kAlmost0, Double_t kAlmost1, int fPrintLevel, int dir, Bool_t InPlane, Double_t& dErec ,Double_t &dxyzrec, Bool_t Energy_loss, std::string CorrTime)
+Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVectorD parvec, 
+                 Double_t kAlmost0, Double_t kAlmost1, int fPrintLevel, int dir, Bool_t InPlane, 
+                 Double_t& dErec ,Double_t &dxyzrec, Bool_t Energy_loss, std::string CorrTime,
+                 std::string MS,Double_t xx0)
 {
             ////Prepare all the parameters for the prediction
 
@@ -472,7 +455,7 @@ Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVe
           if(InPlane && Energy_loss && CorrTime!="after") 
           {
           //std::cout<<"deltaxyz Kalman:"<<deltaxyz<<std::endl;
-          Bool_t checkstatus= CorrectForMeanMaterial(-deltaxyz*rho,muon_mass,0.005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,predstep,PPred,dErec,dir);
+          Bool_t checkstatus= CorrectForMeanMaterial(-deltaxyz*rho,muon_mass,0.005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,predstep,PPred,dErec,dir,MS,deltaxyz/xx0);
           //std::cout<<"I'm correcting"<<std::endl;
           return checkstatus;
           }
@@ -480,3 +463,5 @@ Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVe
 
           return 1.;
 }
+
+#endif
