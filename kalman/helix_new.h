@@ -85,10 +85,24 @@ void makeSeed(const std::vector<XYZVector>  TPCClusters,
               double dir,
               int printlevel,
               TMatrixD &P,
-              double sxy)
+              double sxy,
+              std::string Helix_Corr,
+              size_t nCrossedPlanes)
 {
 
   //std::cout<<"I'm in function"<<std::endl;
+  double ZA =0.54141;
+  double Ipar=64.7e-9;      ///GeV
+  double rho= 1.032;   //g/cm^3
+  double X1=2.49;
+  double X0=0.1469;
+  double muon_mass=0.1056583755; //GeV/c^2
+  double a=0.1610;
+  double m=3.24;
+  double hw=21.54e-9;
+  double Z=0.085+6*0.915;
+  double xx0 = 42.54;  //radiation length in cm (different from Alice's code where it's xx0=1/X0 in cm^-1)
+  double Plane_thick = 4;
 
   size_t InitialTPNTPCClusters = 100;
   size_t nTPCClusters = TPCClusters.size();
@@ -173,24 +187,97 @@ void makeSeed(const std::vector<XYZVector>  TPCClusters,
       std::cout << "phi calc: dz, dy " << xyz2[2]-xyz0[2] << " " <<  xyz2[1]-xyz0[1] << std::endl;
       std::cout << "initial curvature, sinphi, tanlambda: " << curvature_init << " " << sinphi_init << " " << tanlambda_init << std::endl;
     }
+
+  double invpT = curvature_init/(0.5*0.299792458e-2);
+
+  double p = sqrt(pow(tanlambda_init/(curvature_init/(0.5*0.299792458e-2)),2)+pow((0.5*0.299792458e-2)/curvature_init,2));
+
+  if (Helix_Corr == "Eloss_MS" || Helix_Corr == "Eloss") SeedMaterialCorrection(-nCrossedPlanes*Plane_thick*rho,muon_mass,0.005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,
+                                                                                curvature_init,tanlambda_init,sinphi_init,P,dir, Helix_Corr,nCrossedPlanes*Plane_thick/xx0);
  
   
 }
 
-void SeedMaterialCorrection(Double_t xTimesRho, Double_t mass, Float_t stepFraction, Double_t p, float bg,
+Bool_t SeedMaterialCorrection(Double_t xTimesRho, Double_t mass, Float_t stepFraction, Double_t p, float bg,
          float kp0,
          float kp1,
          float kp2,
          float kp3,
          float kp4,
-         TVectorD &parvec,
+         double &curvature_init,
+         double &tanlambda_init,
+         double &sinphi_init,
          TMatrixD &P,
-         Double_t &dErec,
          int dir,
-         std::string MS,
+         std::string Helix_Corr,
          Double_t xOverX0)
               
 {
+ const Double_t kBGStop=0.02;
+  Double_t mass2=mass*mass;
+  //p*=q;
+  if ((p/mass)<kBGStop) return kFALSE;
+  Double_t p2=p*p;
+  Double_t Ein=TMath::Sqrt(p2+mass2);
+  Double_t dP= dPdxEulerStep(p,mass,xTimesRho,stepFraction,bg,kp0,kp1,kp2,kp3,kp4);
+  if (dP==0) return kFALSE;
+  Double_t pOut=p+dP;
+  //if(dir<0) std::cout<<"dir:"<<dir<<" dP:"<<dP<<std::endl;
+  if ((pOut/mass)<kBGStop) return kFALSE;
+  Double_t Eout=TMath::Sqrt(pOut*pOut+mass2);
+  p=(p+pOut)*0.5;
+  // Use mean values for p2, p and beta2
+  p2=p*p;
+  Double_t beta2=p2/(p2+mass2);
+  //
+  double invpTinit= curvature_init/(0.5*0.299792458e-2);
+  //
+  //Calculating the multiple scattering corrections******************
 
+  Double_t cC22 = 0.;
+  Double_t cC33 = 0.;
+  //Double_t cC43 = 0.;
+  Double_t cC44 = 0.;
+
+  if (xOverX0 != 0 && Helix_Corr=="Eloss_MS") {
+    //Double_t theta2=1.0259e-6*14*14/28/(beta2*p2)*TMath::Abs(d)*9.36*2.33;
+    Double_t theta2=0.0136*0.0136/(beta2*p2)*TMath::Abs(xOverX0);
+    
+    double lt = 1+0.038*TMath::Log(TMath::Abs(xOverX0));
+    if (lt>0) theta2 *= lt*lt;
+    
+    //theta2 *= q*q;    // q=2 particle
+    if(theta2>TMath::Pi()*TMath::Pi()) return kFALSE;
+    cC22 = theta2*((1.-sinphi_init)*(1.+sinphi_init))*(1. + tanlambda_init*tanlambda_init);
+    cC33 = theta2*(1. + tanlambda_init*tanlambda_init)*(1. + tanlambda_init*tanlambda_init);
+    //cC43 = theta2*parvec[3]*parvec[4]*(1. + tanlambda_init*tanlambda_init);
+    cC44 = theta2*tanlambda_init*tanlambda_init*invpTinit*invpTinit;
+  }
+
+  //Calculating the energy loss corrections************************
+  Double_t cP4=1.;
+  if ((xTimesRho != 0.) && (beta2 < 1.)) {
+    Double_t dE=Eout-Ein;
+    if ( (1.+ dE/p2*(dE + 2*Ein)) < 0. ) return kFALSE;
+    cP4 = 1./TMath::Sqrt(1.+ dE/p2*(dE + 2*Ein));  //A precise formula by Ruben !
+    //if (TMath::Abs(fP4*cP4)>100.) return kFALSE; //Do not track below 10 MeV/c -dsiable controlled by the BG cut
+    // Approximate energy loss fluctuation (M.Ivanov)
+    const Double_t knst=0.07; // To be tuned.
+    Double_t sigmadE=knst*TMath::Sqrt(TMath::Abs(dE));
+    cC44 += ((sigmadE*Ein/p2*invpTinit)*(sigmadE*Ein/p2*invpTinit));
+    
+  }
+
+  //Applying the corrections*****************************
+
+
+  P[2][2] += cC22;
+  P[3][3] += cC33;
+  //P[4][3] += cC43;
+  P[4][4] += cC44;
+  curvature_init  = invpTinit*cP4*0.5*0.299792458e-2;
+  //if(dir>0)std::cout<<"dir="<<dir<<" cP4="<<cP4<<" cC44= "<<cC44<<std::endl;
+  //CheckCovariance();
+  return kTRUE;
 }
 #endif

@@ -985,6 +985,7 @@ void kalman_helix_garlite_6planes(size_t nevents)
 
       ///Parameters regulating simulation
       std::string Seedtype = "alice"; //perfect, real or alice
+      std::string Helix_Corr = ""; //"Eloss" or "Eloss_MS"
       std::string Energy_Smear = "landau"; //gauss or landau
       std::string CorrTime = ""; //select if apply energy loss correction before or after a posteriori step. Either "after" or anything else for "before"
       Bool_t Backward_separate = false; // apply Kalman filter backwards reusing the Helix fit and not the final point in the forward Kalman
@@ -1548,6 +1549,8 @@ void kalman_helix_garlite_6planes(size_t nevents)
       }
       */
 
+      size_t nCrossedPlanes = nHits_perPlane.size();
+
       
       if(xyz_plane.size()>0 && nHits_perPlane.size()>=3 && status==true) 
       {
@@ -1584,8 +1587,8 @@ void kalman_helix_garlite_6planes(size_t nevents)
             ///Helix Fit Seed as done in Alice
 
             //std::cout << "initial MC curvature, sinphi, tanlambda: " << invpT_plane.at(0)*((0.299792458e-2)*B) << " " << sinphi_plane.at(0) << " " << tanlambda_plane.at(0) << std::endl;
-            if(Smear==kFALSE) makeSeed(xyz_plane,xyz_seed,curvature_seed,tanlambda_seed,sinphi_seed,forward,printlevelHelix,P_seed,0.0000001);
-            else makeSeed(xyz_plane_sm,xyz_seed,curvature_seed,tanlambda_seed,sinphi_seed,forward,printlevelHelix,P_seed,xy_smear);
+            if(Smear==kFALSE) makeSeed(xyz_plane,xyz_seed,curvature_seed,tanlambda_seed,sinphi_seed,forward,printlevelHelix,P_seed,0.0000001,Helix_Corr,nCrossedPlanes);
+            else makeSeed(xyz_plane_sm,xyz_seed,curvature_seed,tanlambda_seed,sinphi_seed,forward,printlevelHelix,P_seed,xy_smear,Helix_Corr,nCrossedPlanes);
             //std::cout << "seed curvature, sinphi, tanlambda: " << curvature_seed << " " << sinphi_seed << " " << tanlambda_seed << std::endl;
             //std::cout << "P0 guess Matrix: " << std::endl;
             //P_seed.Print();
@@ -1627,8 +1630,8 @@ void kalman_helix_garlite_6planes(size_t nevents)
 
                 //std::cout<<"initial curvature, sinphi, tanlambda Kalman seed backwards: "<<curvature_seed_bkw<<" "<<sinphi_seed_bkw<<" "<<tanlambda_seed_bkw<<std::endl;
                 //std::cout << "initial MC curvature, sinphi, tanlambda: " << invpT_plane.at(0)*((0.299792458e-2)*B) << " " << sinphi_plane.at(0) << " " << tanlambda_plane.at(0) << std::endl;
-                if(Smear==kFALSE) makeSeed(xyz_plane_bkw,xyz_seed_bkw,curvature_seed_bkw,tanlambda_seed_bkw,sinphi_seed_bkw,backwards,printlevelHelix,P_seed_bkw,0.0000001);
-                else makeSeed(xyz_plane_bkw,xyz_seed_bkw,curvature_seed_bkw,tanlambda_seed_bkw,sinphi_seed_bkw,backwards,printlevelHelix,P_seed_bkw,xy_smear); 
+                if(Smear==kFALSE) makeSeed(xyz_plane_bkw,xyz_seed_bkw,curvature_seed_bkw,tanlambda_seed_bkw,sinphi_seed_bkw,backwards,printlevelHelix,P_seed_bkw,0.0000001,Helix_Corr,nCrossedPlanes);
+                else makeSeed(xyz_plane_bkw,xyz_seed_bkw,curvature_seed_bkw,tanlambda_seed_bkw,sinphi_seed_bkw,backwards,printlevelHelix,P_seed_bkw,xy_smear,Helix_Corr,nCrossedPlanes); 
               }
             xyz_seed_bkw.SetX(parvect.at(parvect.size()-1)[1]);
             xyz_seed_bkw.SetY(parvect.at(parvect.size()-1)[0]);
