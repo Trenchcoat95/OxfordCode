@@ -31,6 +31,11 @@ public :
    std::vector<int>     *CCNC;
    std::vector<int>     *PDG;
    std::vector<int>     *PDGMother;
+   std::vector<float>   *TPCClusterX;
+   std::vector<float>   *TPCClusterY;
+   std::vector<float>   *TPCClusterZ;
+   std::vector<size_t>  *TPCClusterTrkIDNumber;
+   std::vector<size_t>  *TrackIDNumber;
    std::vector<float>   *MCVertX;
    std::vector<float>   *MCVertY;
    std::vector<float>   *MCVertZ;
@@ -78,6 +83,11 @@ public :
    TBranch        *b_CCNC;   //!
    TBranch        *b_PDG;   //!
    TBranch        *b_PDGMother;
+   TBranch        *b_TPCClusterX;
+   TBranch        *b_TPCClusterY;
+   TBranch        *b_TPCClusterZ;
+   TBranch        *b_TPCClusterTrkIDNumber;
+   TBranch        *b_TrackIDNumber;
    TBranch        *b_TrackLenF;   //!
    TBranch        *b_TrackLenB;   //!
    TBranch        *b_MCVertX;
@@ -125,34 +135,20 @@ public :
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TChain *tree);
    //virtual void     Loop();
-   virtual void     l2g_Trackmatch();
-   virtual void     Plane_Eloss();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 };
 
-#endif
+//#endif
 
-#ifdef garana_cxx
+//#ifdef garana_cxx
 garana::garana(TChain *tree) : fChain(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
-   if (tree == 0) {
-      //TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("hemanatree.root");
-      //if (!f || !f->IsOpen()) {
-      //   f = new TFile("hemanatree.root");
-      //}
-      //TDirectory * dir = (TDirectory*)f->Get("hemanatree.root:/anatree");
-      //dir->GetObject("GArAnaTree",tree);
-      //TChain* point = new TChain("/anatree/GArAnaTree");
-      //point->Add("/home/federico/Documents/Universita/Federico_2020-2021/OxfordCode/l2g/data/*.root");
-      tree = new TChain("/anatree/GArAnaTree");
-      //tree->Add("/home/federico/Documents/Universita/Federico_2020-2021/OxfordCode/l2g/data/*.root");
-      //tree->Add("/home/federico/Documents/Universita/Federico_2020-2021/OxfordCode/l2g/Macros/Current/Standard/data/*.root");
-      //tree->Add("/home/federico/Documents/Universita/Federico_2020-2021/OxfordCode/l2g/Macros/Current/Standard/data/*.root");
-      //neutrino.nd_hall_dayone_lar_SPY_v2_wMuID.volArgonCubeActive.Ev973000.Ev973999.2037.anatree.root
-      tree->Add("/home/federico/Documents/Universita/Federico_2020-2021/OxfordCode/Kalman_Garlite/MCgarlite/6planes/*root");
+   if (tree == 0) {   
+      tree = new TChain("/anatree/GArAnaTree");    
+      tree->Add("/home/federico/Documents/Universita/Federico_2020-2021/OxfordCode/Kalman_Garlite/MCgarlite/6planes/muon_test_ana.root");
    }
    Init(tree);
 }
@@ -205,6 +201,11 @@ void garana::Init(TChain *tree)
    CCNC = 0;
    PDG = 0;
    PDGMother = 0;
+   TPCClusterX = 0;
+   TPCClusterY = 0;
+   TPCClusterZ = 0;
+   TPCClusterTrkIDNumber = 0;
+   TrackIDNumber = 0;  
    TrackLenF = 0;
    TrackLenB = 0;
    MCVertX = 0;
@@ -258,6 +259,11 @@ void garana::Init(TChain *tree)
    //fChain->SetBranchAddress("CCNC", &CCNC, &b_CCNC);
    fChain->SetBranchAddress("PDG", &PDG, &b_PDG);
    fChain->SetBranchAddress("PDGMother", &PDGMother, &b_PDGMother);
+   fChain->SetBranchAddress("TPCClusterX", &TPCClusterX, &b_TPCClusterX);
+   fChain->SetBranchAddress("TPCClusterY", &TPCClusterY, &b_TPCClusterY);
+   fChain->SetBranchAddress("TPCClusterZ", &TPCClusterZ, &b_TPCClusterZ);
+   fChain->SetBranchAddress("TrackIDNumber", &TrackIDNumber, &b_TrackIDNumber);
+   fChain->SetBranchAddress("TPCClusterTrkIDNumber", &TPCClusterTrkIDNumber, &b_TPCClusterTrkIDNumber);
    //fChain->SetBranchAddress("TrackLenF", &TrackLenF, &b_TrackLenF);
    //fChain->SetBranchAddress("TrackLenB", &TrackLenB, &b_TrackLenB);
    fChain->SetBranchAddress("MCNuPx", &MCNuPx, &b_MCNuPx);
