@@ -697,4 +697,122 @@ int Helix_Fit(const std::vector<XYZVector>  TPCClusters,
 }
 
 
+
+void CalculateCovariance(const std::vector<XYZVector>  TPCClusters,
+              TMatrixD &P,
+              double curvature_init,
+              double lambda_init,
+              double phi_init,
+              double dir,
+              int printlevel,
+              double sxy
+              )
+{
+  size_t InitialTPNTPCClusters = 100;
+  size_t nTPCClusters = TPCClusters.size();
+  size_t firstTPCCluster = 0;
+  size_t farTPCCluster = TMath::Min(nTPCClusters-1, InitialTPNTPCClusters);
+  size_t intTPCCluster = farTPCCluster/2;
+  size_t lastTPCCluster = nTPCClusters-1;
+  
+
+  std::vector<XYZVector> xyz3points;
+  XYZVector xyzpoint;
+
+  xyzpoint.SetXYZ(TPCClusters.at(firstTPCCluster).X(),
+                       TPCClusters.at(firstTPCCluster).Y(),
+                       TPCClusters.at(firstTPCCluster).Z());
+
+  xyz3points.push_back(xyzpoint);                    
+
+  xyzpoint.SetXYZ(TPCClusters.at(intTPCCluster).X(),
+                  TPCClusters.at(intTPCCluster).Y(),
+                  TPCClusters.at(intTPCCluster).Z());
+
+  xyz3points.push_back(xyzpoint);
+
+  xyzpoint.SetXYZ(TPCClusters.at(farTPCCluster).X(),
+                  TPCClusters.at(farTPCCluster).Y(),
+                  TPCClusters.at(farTPCCluster).Z());
+
+  xyz3points.push_back(xyzpoint);
+
+  
+  double curvature_smear, lambda_smear, phi_smear;
+
+  /////
+  xyz3points[2].SetY(xyz3points[2].Y()+sxy);
+
+  Helix_Fit(xyz3points,xyzpoint,curvature_smear,lambda_smear,phi_smear,dir,printlevel);
+
+  Double_t f40=(curvature_smear-curvature_init)/sxy;
+  Double_t f23=(phi_smear-phi_init)/sxy;
+  Double_t f30=(lambda_smear-lambda_init)/sxy;
+
+  xyz3points[2].SetY(xyz3points[2].Y()-sxy);
+  //////
+
+
+
+  /////
+  xyz3points[1].SetY(xyz3points[1].Y()+0.1*sxy);
+
+  Helix_Fit(xyz3points,xyzpoint,curvature_smear,lambda_smear,phi_smear,dir,printlevel);
+
+  Double_t f42=(curvature_smear-curvature_init)/sxy;
+  Double_t f22=(phi_smear-phi_init)/sxy;
+  Double_t f32=(lambda_smear-lambda_init)/sxy;
+
+  xyz3points[1].SetY(xyz3points[1].Y()-0.1*sxy);
+  //////
+
+
+  /////
+  xyz3points[0].SetY(xyz3points[0].Y()+0.1*sxy);
+
+  Helix_Fit(xyz3points,xyzpoint,curvature_smear,lambda_smear,phi_smear,dir,printlevel);
+
+  Double_t f43=(curvature_smear-curvature_init)/sxy;
+  Double_t f20=(phi_smear-phi_init)/sxy;
+
+  xyz3points[0].SetY(xyz3points[0].Y()-0.1*sxy);
+  //////
+
+  /////
+  xyz3points[2].SetX(xyz3points[2].X()+0.1*sxy);
+
+  Helix_Fit(xyz3points,xyzpoint,curvature_smear,lambda_smear,phi_smear,dir,printlevel);
+
+  Double_t f31=(lambda_smear-lambda_init)/sxy;
+
+  xyz3points[2].SetY(xyz3points[2].X()-0.1*sxy);
+  //////
+
+  /////
+  xyz3points[1].SetX(xyz3points[1].X()+0.1*sxy);
+
+  Helix_Fit(xyz3points,xyzpoint,curvature_smear,lambda_smear,phi_smear,dir,printlevel);
+
+  Double_t f34=(lambda_smear-lambda_init)/sxy;
+
+  xyz3points[1].SetY(xyz3points[1].X()-0.1*sxy);
+  //////
+
+
+  double sxy2 = sxy*sxy;
+  P[0][0]=sxy2;
+  P[1][1]=sxy2;
+  P[2][2]=f20*sxy2*f20+f22*sxy2*f22+f23*sxy2*f23;
+  P[3][3]=f30*sxy2*f30+f31*sxy2*f31+f32*sxy2*f32+f34*sxy2*f34; 
+  P[4][4]=f40*sxy2*f40+f42*sxy2*f42+f43*sxy2*f43;
+
+  P[2][2]=sin(sqrt(P[2][2]))*sin(sqrt(P[2][2]));
+  P[3][3]=tan(sqrt(P[3][3]))*tan(sqrt(P[3][3]));
+  P[4][4]/=(0.5*0.3e-2)*(0.5*0.3e-2); // transform to 1/pt
+  //P[4][4]*=0.2*0.2;
+  
+
+}
+
+
 #endif

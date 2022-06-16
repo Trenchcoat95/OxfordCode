@@ -68,6 +68,8 @@ void KalmanFit(
      
       const int nplanes = 6;
       double Planes_Z[]={1179,1183,1199,1203,1219,1223,1239,1243,1339,1343,1539,1543};
+      double Planes_Z_bkw[]={1539,1543,1339,1343,1239,1243,1219,1223,1199,1203,1179,1183};
+      /*
       if (dir<0) 
       {
         Planes_Z[0]=1539;  Planes_Z[1]=1543;
@@ -77,6 +79,8 @@ void KalmanFit(
         Planes_Z[8]=1199;  Planes_Z[9]=1203;
         Planes_Z[10]=1179; Planes_Z[11]=1183;
       }
+      */
+      
         
       //for(size_t i=0;i<10;i++) std::cout<<Planes_Z[i]<<" ";
       //std::cout<<"\n";
@@ -147,7 +151,7 @@ void KalmanFit(
       //need to check this
       TMatrixD Q(5,5);
       Q.Zero();
-      //Q[4][4] = 0.0001;     // allow for some curvature uncertainty between points
+      //Q[4][4] = 0.00001;     // allow for some curvature uncertainty between points
       //Q[2][2] = 1e-09;      // phi
       //Q[3][3] = 0.0001;   // lambda
 
@@ -243,6 +247,7 @@ void KalmanFit(
           if (fPrintLevel > 0)
             {
               std::cout << std::endl;
+              std::cout << "Current zpos: "<<zpos<<std::endl;
               std::cout << "Adding a new TPCCluster: x:" << xh << " y: " << yh << " z: " << zh << std::endl;
             }
 
@@ -263,58 +268,14 @@ void KalmanFit(
           Bool_t InPlane;
           Double_t dxyzrecord = 0;
           Double_t dErecord = 0;
-          /*
-          if (abs(dz)<4)
-          {
-            for(size_t p=0;p<nplanes;p++)
-            {
-              if((zpos>Planes_Z[p*2] && zpos<Planes_Z[p*2+1]))
-                  {
 
-                    InPlane = 1;
-                    /// do the prediction
-                    if(planecounterk!=p && !dEvecreck.empty() && !dxvecreck.empty() && dir>0)
-                    {
-                      std::cout<<"Plane "<<p<<" dxreco: ";
-                      for(int j =0; j<dxvecreck.size();j++) std::cout<<dxvecreck.at(j)<<" ";
-                      std::cout<<"\n";
-                      dEreco.push_back(dEvecreck);
-                      dxreco.push_back(dxvecreck);
-                      dEvecreck.clear();
-                      dxvecreck.clear();
-                    }
-                    if(planecounterk!=p && dir>0) {planecounterk=p;}
-
-                    
-                    Double_t dxyzrec, dErec;
-                    Bool_t checkstatus = Propagate(dz,PPred, P, predstep,  parvec, kAlmost0, kAlmost1, fPrintLevel, dir, InPlane, dErec, dxyzrec, Energy_loss, CorrTime, MS, xx0);
-                      if (!checkstatus)
-                      { 
-                        status=checkstatus;
-                        break;
-                      }
-
-
-                    //if(dir>0) std::cout<<dErec<<" "<<dxyzrec<<std::endl;
-                    if(dir>0) dEvecreck.push_back(dErec);
-                    if(dir>0) dxvecreck.push_back(dxyzrec);
-
-                    dxyzrecord = dxyzrec;
-                    dErecord = dErec;
-                    //std::cout<<dEvecreck.size()<<std::endl;
-                      
-                  }
-            }
-          }
-          else
-          */
 
            PPred=P;
            predstep=parvec;
           
             for(size_t p=0;p<nplanes;p++)
             {
-                if(abs(zh-zpos)<=Plane_thick&&abs(zh-zpos)>0&&(zpos>=Planes_Z[p*2] && zpos<=Planes_Z[p*2+1]))
+                if(abs(zh-zpos)<=Plane_thick&&abs(zh-zpos)>=0&&((dz>0 && zpos>=Planes_Z[p*2] && zpos<=Planes_Z[p*2+1]) || (dz<0 && zpos>=Planes_Z_bkw[p*2] && zpos<=Planes_Z_bkw[p*2+1])))
                   {
 
                     InPlane = 1;
@@ -334,6 +295,8 @@ void KalmanFit(
                     
                     Double_t dxyzrec, dErec;
                     double dzmid=zh-zpos;
+                    if(dzmid!=0)
+                    {
                     zpos+=dzmid;
                     if (fPrintLevel>0) std::cout<<zpos<<std::endl;
                     Bool_t checkstatus = Propagate(dzmid,PPred, PPred, predstep,  predstep, kAlmost0, kAlmost1, fPrintLevel, dir, InPlane, dErec, dxyzrec, Energy_loss, CorrTime, MS, xx0);
@@ -351,13 +314,14 @@ void KalmanFit(
                     dxyzrecord = dxyzrec;
                     dErecord = dErec;
                     break;
-                    
+                    }
+                    else break;
                     //std::cout<<dEvecreck.size()<<std::endl;
                       
                   }
                 
 
-                else if((zpos>=Planes_Z[p*2] && zpos<=Planes_Z[p*2+1]))
+                else if((dz>0 && zpos>=Planes_Z[p*2] && zpos<=Planes_Z[p*2+1]) || (dz<0 && zpos>=Planes_Z_bkw[p*2] && zpos<=Planes_Z_bkw[p*2+1]))
                   {
                     if(planecounterk!=p && !dEvecreck.empty() && !dxvecreck.empty()  && dir>0)
                     {
@@ -373,27 +337,43 @@ void KalmanFit(
                     Double_t dxyzrec, dErec;
                     Double_t dxyzrectot=0;
                     Double_t dErectot=0;
-                    if (dir>0) dzmid=Planes_Z[p*2+1]-zpos;
-                    else dzmid=Planes_Z[p*2]-zpos;
-                    zpos+=dzmid;
-                    if (fPrintLevel>0) std::cout<<zpos<<std::endl;
-                    //if(dir<0)std::cout<<"dz from point to plane: "<< dzmid <<std::endl;
-                    InPlane=1;
                     
-                    Bool_t checkstatus = Propagate(dzmid,PPred, PPred, predstep,  parvec, kAlmost0, kAlmost1, fPrintLevel, dir, InPlane, dErec, dxyzrec, Energy_loss, CorrTime, MS, xx0);
-                    dErectot+=dErec;
-                    dxyzrectot+=dxyzrec;
-                    if (!checkstatus)
-                    { 
-                      status=checkstatus;
-                      break;
+                    if (dz>0) dzmid=Planes_Z[p*2+1]-zpos;
+                    else 
+                    {
+                    dzmid=Planes_Z_bkw[p*2]-zpos;
+                    //std::cout<<"hell yeah"<<std::endl;
                     }
+
+                    Bool_t checkstatus=1;
+
+                    if(dzmid!=0)
+                    {
+                      zpos+=dzmid;
+                      
+                      if (fPrintLevel>0) std::cout<<zpos<<std::endl;
+                      //if(dir<0)std::cout<<"dz from point to plane: "<< dzmid <<std::endl;
+                      InPlane=1;
+                      
+                      checkstatus = Propagate(dzmid,PPred, PPred, predstep,  predstep, kAlmost0, kAlmost1, fPrintLevel, dir, InPlane, dErec, dxyzrec, Energy_loss, CorrTime, MS, xx0);
+                      dErectot+=dErec;
+                      dxyzrectot+=dxyzrec;
+                      if (!checkstatus)
+                      { 
+                        status=checkstatus;
+                        break;
+                      }
+                    }                    
                     //if(dir>0)std::cout<<"dxyzmid: "<<dxyzrec;
                     
 
                     InPlane = false;
-                    if (dir>0) dzmid=Planes_Z[p*2+2]-Planes_Z[p*2+1];
-                    else dzmid=Planes_Z[p*2+3]-Planes_Z[p*2];
+                    if (dz>0) dzmid=Planes_Z[p*2+2]-Planes_Z[p*2+1];
+                    else 
+                    {
+                    dzmid=Planes_Z_bkw[p*2+3]-Planes_Z_bkw[p*2];
+                    //std::cout<<"hell yeah 2"<<std::endl;
+                    }
                     zpos+=dzmid;
                     if (fPrintLevel>0) std::cout<<zpos<<std::endl;
                     //TVectorD predmidstep = predstep;
@@ -407,39 +387,12 @@ void KalmanFit(
                     }
 
                     continue;
-
-                    /*
-                    InPlane = true;
-                    if (dir>0) dzmid=zh-Planes_Z[p*2];
-                    else dzmid=zh-Planes_Z[2*p+1];
-                    //predmidstep = predstep;
-                    //Predmidstep = PPred;
-                    //if(dir<0) std::cout<<"dz from plane to new point: "<< dzmid <<std::endl;
-                    checkstatus = Propagate(dzmid,PPred, PPred, predstep,  predstep, kAlmost0, kAlmost1, fPrintLevel, dir, InPlane, dErec, dxyzrec, Energy_loss,CorrTime, MS, xx0);
-                    
-                    if (!checkstatus)
-                    { 
-                      status=checkstatus;
-                      break;
-                    }
-                    //if(dir>0)std::cout<<" "<<dxyzrec;
-                    dErectot+=dErec;
-                    dxyzrectot+=dxyzrec;
-                    //if(dir>0)std::cout<<" dxyztot: "<<dxyzrectot<<std::endl;
-                    
-                    if(dir>0) dEvecreck.push_back(dErectot);
-                    if(dir>0) dxvecreck.push_back(dxyzrectot);
-
-                    dxyzrecord = dxyzrectot;
-                    dErecord = dErectot;
-                    */
-
                   }
             }
 
           
 
-          
+          PPred=PPred+Q;
           
           predstept.push_back(predstep);
           PPredt.push_back(PPred);                           // update tree covariance

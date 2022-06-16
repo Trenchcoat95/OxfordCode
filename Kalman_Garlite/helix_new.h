@@ -172,6 +172,180 @@ Bool_t SeedMaterialCorrection(Double_t xTimesRho, Double_t mass, Float_t stepFra
   return kTRUE;
 }
 
+double CalculatePath(const std::vector<XYZVector>  TPCClusters,
+              double &curvature_init,
+              double &tanlambda_init,
+              double &sinphi_init
+              )
+{
+
+  const int nplanes = 6;
+  double Planes_Z[]={1179,1183,1199,1203,1219,1223,1239,1243,1339,1343,1539,1543};
+  double Planes_Z_bkw[]={1539,1543,1339,1343,1239,1243,1219,1223,1199,1203,1179,1183};
+
+  ////In development
+
+  double xpos = TPCClusters[0].X();
+  double ypos = TPCClusters[0].Y();
+  double zpos = TPCClusters[0].Z();
+  double sinphipos = sinphi_init;
+  double zh;
+  double dtot = 0;
+  int fPrintLevel=0;
+  if (fPrintLevel > 0)
+            {
+              std::cout << std::endl;
+              std::cout << "Starting Position: x:" << TPCClusters[0].X() << " y: " << TPCClusters[0].Y() << " z: " << TPCClusters[0].Z() << std::endl;
+            }
+
+  for (size_t iTPCCluster=1; iTPCCluster<TPCClusters.size(); ++iTPCCluster)
+        {
+
+          if (fPrintLevel > 0)
+            {
+              std::cout << std::endl;
+              std::cout << "Adding a new TPCCluster: x:" << TPCClusters[iTPCCluster].X() << " y: " << TPCClusters[iTPCCluster].Y() << " z: " << TPCClusters[iTPCCluster].Z() << std::endl;
+            }
+
+          zh=TPCClusters[iTPCCluster].Z();
+          double dz=zh-zpos;
+          for(size_t p=0;p<nplanes;p++)
+            {
+                if(abs(zh-zpos)<=Plane_thick&&abs(zh-zpos)>=0&&((dz>0 && zpos>=Planes_Z[p*2] && zpos<=Planes_Z[p*2+1]) || (dz<0 && zpos>=Planes_Z_bkw[p*2] && zpos<=Planes_Z_bkw[p*2+1])))
+                  {
+                   
+                    double dzmid=zh-zpos;
+                    
+                   
+                    
+                    Double_t z2r = curvature_init*dzmid;
+                    Double_t f1=sinphi_init;
+                    Double_t f2=f1 + z2r;
+                    Double_t r1=TMath::Sqrt((1.-f1)*(1.+f1)), r2=TMath::Sqrt((1.-f2)*(1.+f2));
+
+                    Double_t dy2dz = (f1+f2)/(r1+r2);
+                    Double_t rot = TMath::ASin(r1*f2 - r2*f1);
+                    if (f1*f1+f2*f2>1 && f1*f2<0) {          // special cases of large rotations or large abs angles
+                      if (f2>0) rot =  TMath::Pi() - rot;    //
+                      else      rot = -TMath::Pi() - rot;
+                    }
+
+                    xpos+=tanlambda_init/curvature_init*rot;
+                    ypos+=dzmid*dy2dz;
+                    zpos+=dzmid;       
+                    sinphipos+=z2r; 
+
+                    if (fPrintLevel>0) std::cout<<zpos<<std::endl;
+
+                    if (TMath::Abs(f1) >= kAlmost1 || TMath::Abs(f2) >= kAlmost1 || abs(tanlambda_init)<kAlmost0 || TMath::Abs(r1)<kAlmost0 || TMath::Abs(r2)<kAlmost0) 
+                    {
+                      std::cout<<TMath::Abs(f1)<<" "<<TMath::Abs(f2)<<" "<<tanlambda_init<<" "<<TMath::Abs(r1)<<" "<<TMath::Abs(r2)<<std::endl;
+                      return -1;
+                      
+                    }
+
+                    float tanPhi2 = sinphipos*sinphipos;
+                    tanPhi2/=(1-tanPhi2);
+                    dtot+=abs(dzmid*TMath::Sqrt(1.+tanPhi2+tanlambda_init*tanlambda_init)); 
+                    if (fPrintLevel>0) std::cout<<"dtot: "<<dtot<<std::endl;
+
+
+                                   
+                    break;
+                    
+                    
+                      
+                  }
+                
+
+               else if((dz>0 && zpos>=Planes_Z[p*2] && zpos<=Planes_Z[p*2+1]) || (dz<0 && zpos>=Planes_Z_bkw[p*2] && zpos<=Planes_Z_bkw[p*2+1]))
+                  {
+
+                    double dzmid;
+                    
+                   
+                    
+                    if (dz>0) dzmid=Planes_Z[p*2+1]-zpos;
+                    else dzmid=Planes_Z_bkw[p*2]-zpos;
+
+                    Double_t z2r, f1, f2,r1, r2, dy2dz,rot = 0;
+                    
+                    if(dzmid!=0)
+                    {
+                    
+                    z2r = curvature_init*dzmid;
+                    f1=sinphi_init;
+                    f2=f1 + z2r;
+                    r1=TMath::Sqrt((1.-f1)*(1.+f1)), r2=TMath::Sqrt((1.-f2)*(1.+f2));
+
+                    dy2dz = (f1+f2)/(r1+r2);
+                    rot = TMath::ASin(r1*f2 - r2*f1);
+                    if (f1*f1+f2*f2>1 && f1*f2<0) {          // special cases of large rotations or large abs angles
+                      if (f2>0) rot =  TMath::Pi() - rot;    //
+                      else      rot = -TMath::Pi() - rot;
+                    }
+
+                    xpos+=tanlambda_init/curvature_init*rot;
+                    ypos+=dzmid*dy2dz;
+                    zpos+=dzmid;       
+                    sinphipos+=z2r; 
+                    if (fPrintLevel>0) std::cout<<zpos<<std::endl;
+
+                    if (TMath::Abs(f1) >= kAlmost1 || TMath::Abs(f2) >= kAlmost1 || abs(tanlambda_init)<kAlmost0 || TMath::Abs(r1)<kAlmost0 || TMath::Abs(r2)<kAlmost0) 
+                    {
+                      return -1;
+                    }
+
+                    float tanPhi2 = sinphipos*sinphipos;
+                    tanPhi2/=(1-tanPhi2);
+                    dtot+=abs(dzmid*TMath::Sqrt(1.+tanPhi2+tanlambda_init*tanlambda_init)); 
+                    if (fPrintLevel>0) std::cout<<"dtot: "<<dtot<<std::endl;
+                    }
+                    
+                    
+                    
+
+                    
+                    if (dz>0) dzmid=Planes_Z[p*2+2]-Planes_Z[p*2+1];
+                    else dzmid=Planes_Z_bkw[p*2+3]-Planes_Z_bkw[p*2];
+
+                    z2r = curvature_init*dzmid;
+                    f1=sinphi_init;
+                    f2=f1 + z2r;
+                    r1=TMath::Sqrt((1.-f1)*(1.+f1)), r2=TMath::Sqrt((1.-f2)*(1.+f2));
+
+                    dy2dz = (f1+f2)/(r1+r2);
+                    rot = TMath::ASin(r1*f2 - r2*f1);
+                    if (f1*f1+f2*f2>1 && f1*f2<0) {          // special cases of large rotations or large abs angles
+                      if (f2>0) rot =  TMath::Pi() - rot;    //
+                      else      rot = -TMath::Pi() - rot;
+                    }
+
+                    xpos+=tanlambda_init/curvature_init*rot;
+                    ypos+=dzmid*dy2dz;
+                    zpos+=dzmid;       
+                    sinphipos+=z2r; 
+                    if (fPrintLevel>0) std::cout<<zpos<<std::endl;
+
+                    if (TMath::Abs(f1) >= kAlmost1 || TMath::Abs(f2) >= kAlmost1 || abs(tanlambda_init)<kAlmost0 || TMath::Abs(r1)<kAlmost0 || TMath::Abs(r2)<kAlmost0) 
+                    {
+                      return -1;
+                    }
+                    
+
+
+                    continue;
+                    
+                  }
+            }
+          
+         
+          
+        }
+    return dtot; 
+
+}
+
 void makeSeed(const std::vector<XYZVector>  TPCClusters,
               XYZVector  &TPCClustersSeed,
               double &curvature_init,
@@ -237,6 +411,7 @@ void makeSeed(const std::vector<XYZVector>  TPCClusters,
       std::cout << "Far   TPCCluster x, y, z: " << xyz2[0] << " " << xyz2[1] << " " << xyz2[2] << std::endl;
     }
 
+  
   Double_t sxy2=sxy*sxy;
   
   // calculate initial param
@@ -259,12 +434,13 @@ void makeSeed(const std::vector<XYZVector>  TPCClusters,
   Double_t f34=(dir*makeTgln(xyz2[2],xyz2[1],xyz1[2],xyz1[1],xyz2[0],xyz1[0]+sxy,curvature_init)-tanlambda_init)/sxy;
   P.Zero();
 
-  //P[0][0]=sxy2;        P[0][1]=0.;         P[0][2]=f20*sxy2;                                 P[0][3]=f30*sxy2;                                              P[0][4]=f40*sxy2;
-  //P[1][0]=0.;          P[1][1]=sxy2;       P[1][2]=0.;                                       P[1][3]=f31*sxy2;                                              P[1][4]=0.;
-  //P[2][0]=f20*sxy2;    P[2][1]=0.;         P[2][2]=f20*sxy2*f20+f22*sxy2*f22+f23*sxy2*f23;   P[2][3]=f30*sxy2*f20+f32*sxy2*f22;                             P[2][4]=f40*sxy2*f20+f42*sxy2*f22+f43*sxy2*f23;
-  //P[3][0]=f30*sxy2;    P[3][1]=f31*sxy2;   P[3][2]=f30*sxy2*f20+f32*sxy2*f22;                P[3][3]=f30*sxy2*f30+f31*sxy2*f31+f32*sxy2*f32+f34*sxy2*f34;   P[3][4]=f30*sxy2*f40+f32*sxy2*f42;
-  //P[4][0]=f40*sxy2;    P[4][1]=0.;         P[4][2]=f40*sxy2*f20+f42*sxy2*f22+f43*sxy2*f23;   P[4][3]=f30*sxy2*f40+f32*sxy2*f42;                             P[4][4]=f40*sxy2*f40+f42*sxy2*f42+f43*sxy2*f43;
-  
+  /*
+  P[0][0]=sxy2;        P[0][1]=0.;         P[0][2]=f20*sxy2;                                 P[0][3]=f30*sxy2;                                              P[0][4]=f40*sxy2;
+  P[1][0]=0.;          P[1][1]=sxy2;       P[1][2]=0.;                                       P[1][3]=f31*sxy2;                                              P[1][4]=0.;
+  P[2][0]=f20*sxy2;    P[2][1]=0.;         P[2][2]=f20*sxy2*f20+f22*sxy2*f22+f23*sxy2*f23;   P[2][3]=f30*sxy2*f20+f32*sxy2*f22;                             P[2][4]=f40*sxy2*f20+f42*sxy2*f22+f43*sxy2*f23;
+  P[3][0]=f30*sxy2;    P[3][1]=f31*sxy2;   P[3][2]=f30*sxy2*f20+f32*sxy2*f22;                P[3][3]=f30*sxy2*f30+f31*sxy2*f31+f32*sxy2*f32+f34*sxy2*f34;   P[3][4]=f30*sxy2*f40+f32*sxy2*f42;
+  P[4][0]=f40*sxy2;    P[4][1]=0.;         P[4][2]=f40*sxy2*f20+f42*sxy2*f22+f43*sxy2*f23;   P[4][3]=f30*sxy2*f40+f32*sxy2*f42;                             P[4][4]=f40*sxy2*f40+f42*sxy2*f42+f43*sxy2*f43;
+  */
   //For now only consider diagonal elements
   P[0][0]=sxy2;
   P[1][1]=sxy2;
@@ -289,10 +465,20 @@ void makeSeed(const std::vector<XYZVector>  TPCClusters,
 
   double p = sqrt(pow(tanlambda_init/(curvature_init/(0.5*0.3e-2)),2)+pow((0.5*0.3e-2)/curvature_init,2));
 
+
+  double crossLength = CalculatePath(TPCClusters,curvature_init,tanlambda_init,sinphi_init);
+  if(crossLength==-1) crossLength=nCrossedPlanes*Plane_thick;
   
+  
+  //std::cout<<"crossLength: "<<crossLength<<" dtot: "<<dtot<<std::endl;
+
+  //float tanPhi2 = sinphi_init*sinphi_init;
+  //tanPhi2/=(1-tanPhi2);
+  //crossLength*=TMath::Sqrt(1.+tanPhi2+tanlambda_init*tanlambda_init);
+
   if (Helix_Corr == "Eloss_MS" || Helix_Corr == "Eloss") {
-    SeedMaterialCorrection(nCrossedPlanes*Plane_thick*rho,muon_mass,0.05,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,
-                                                                                curvature_init,tanlambda_init,sinphi_init,P,dir, Helix_Corr,nCrossedPlanes*Plane_thick/xx0);
+    SeedMaterialCorrection(nCrossedPlanes*Plane_thick*rho,muon_mass,0.0005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,
+                                                                                curvature_init,tanlambda_init,sinphi_init,P,dir, Helix_Corr,crossLength/xx0);
   }
   
 }

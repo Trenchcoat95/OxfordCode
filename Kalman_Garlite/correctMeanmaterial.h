@@ -309,7 +309,7 @@ Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVe
                  std::string MS,Double_t xx0)
 {
             ////Prepare all the parameters for the prediction
-
+          /*
           double ZA =0.54141;
           double Ipar=64.7e-9;      ///GeV
           double rho= 1.032;   //g/cm^3
@@ -320,8 +320,9 @@ Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVe
           double m=3.24;
           double hw=21.54e-9;
           double Z=0.085+6*0.915;
+          */
 
-          double curvature = (B*0.299792458e-2)*parvec[4];
+          double curvature = (B*0.3e-2)*parvec[4];
           double sinphi = parvec[2];
           double tanlambda = parvec[3];
 
@@ -391,10 +392,7 @@ Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVe
           predstep[1] +=tanlambda/curvature*rot; //update x
                                  // update tree values
           
-          if (fPrintLevel >0 )
-            {
-              std::cout << " Predstep: y " << predstep[0] << " x " << predstep[1] << " sinphi " << predstep[2] << " tanlambda " << predstep[3] << " 1/pT " << predstep[4] << std::endl;
-            }
+          
           
           
           
@@ -452,7 +450,11 @@ Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVe
           PPred[3][2] += b32;
           PPred[4][2] += b42;
 
-          double deltaxyz = dir * sqrt(pow((dz),2)+pow((dz*dy2dz),2)+pow((tanlambda/curvature*rot),2));
+          
+            float tanPhi2 = predstep[2]*predstep[2];
+            tanPhi2/=(1-tanPhi2);
+            double deltaxyz=dz*TMath::Sqrt(1.+tanPhi2+predstep[3]*predstep[3]);           
+          
           dxyzrec=deltaxyz;
           //std::cout<<"deltaxyz dist"<<deltaxyz<<std::endl;
 
@@ -467,10 +469,24 @@ Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVe
           if(InPlane && Energy_loss && CorrTime!="after") 
           {
           //std::cout<<"deltaxyz Kalman:"<<deltaxyz<<std::endl;
-          Bool_t checkstatus= CorrectForMeanMaterial(-deltaxyz*rho,muon_mass,0.005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,predstep,PPred,dErec,dir,MS,deltaxyz/xx0);
+          Bool_t checkstatus= CorrectForMeanMaterial(-deltaxyz*rho,muon_mass,0.0005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,predstep,PPred,dErec,dir,MS,deltaxyz/xx0);
+          if (fPrintLevel >0 )
+          {
+              std::cout << " Predstep: y " << predstep[0] << " x " << predstep[1] << " sinphi " << predstep[2] << " tanlambda " << predstep[3] << " 1/pT " << predstep[4] << std::endl;
+          }
           //std::cout<<"I'm correcting"<<std::endl;
           return checkstatus;
           }
+          else
+          {
+            if (fPrintLevel >0 )
+          {
+              std::cout << " Predstep: y " << predstep[0] << " x " << predstep[1] << " sinphi " << predstep[2] << " tanlambda " << predstep[3] << " 1/pT " << predstep[4] << std::endl;
+          }
+
+          }
+
+
           
 
           return 1.;
