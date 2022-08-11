@@ -148,7 +148,7 @@ garana::garana(TChain *tree) : fChain(0)
 // used to generate this class and read the Tree.
    if (tree == 0) {   
       tree = new TChain("/anatree/GArAnaTree");    
-      tree->Add("/home/federico/Documents/Universita/Federico_2020-2021/OxfordCode/Kalman_Garlite/MCgarlite/6planes/muon_test_ana.root");
+      tree->Add("/home/federico/Documents/Universita/Federico_2020-2021/OxfordCode/Kalman_Garlite/MCgarlite/6planes/muon_test_ana10k*");
    }
    Init(tree);
 }

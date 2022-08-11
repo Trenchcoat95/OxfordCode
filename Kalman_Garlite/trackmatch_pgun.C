@@ -90,22 +90,26 @@ void trackmatch_pgun(size_t start_entry, size_t n_entries)
     std::cout << std::setprecision(10);
 
     /////Kalman parameters
+    string filename = "MC1GeV_realseed_Eloss_MS_kalman_Eloss_MS_repeatMatrix";
+
     std::string Seedtype = "real";       //perfect, real or alice
-    Bool_t OldCov = true;
     std::string Helix_Corr = "Eloss_MS";          //"Eloss" or "Eloss_MS"
-    std::string Energy_Smear = "";        //gauss or landau
-    std::string CorrTime = "";            //select if apply energy loss correction before or after a posteriori step. 
-                                        //Either "after" or anything else for "before"
-    Bool_t Backward_separate = false;     // apply Kalman filter backwards reusing the Helix fit and not the final point in the forward Kalman
-    Bool_t Fixed_Cov = true;              // apply Kalman filter backwards using fixed guess values for the covariance matrix
     Bool_t Energy_loss_corr = true;
+    std::string MS = "addMS_Smearing_Corr";    //use "addMS_Smearing_Corr" for for the MS correction  
+
+
+    Bool_t OldCov = true;    
+    std::string Energy_Smear = "";        //gauss or landau
+    std::string CorrTime = "";            //select if apply energy loss correction before or after a posteriori step.                                         //Either "after" or anything else for "before"
+    Bool_t Backward_separate = false;     // apply Kalman filter backwards reusing the Helix fit and not the final point in the forward Kalman
+    Bool_t Fixed_Cov = true;              // apply Kalman filter backwards using fixed guess values for the covariance matrix    
     Bool_t Smear = true;
     Bool_t Seed_only = false;
-    std::string MS = "addMS_Smearing_Corr";    //use "addMS_Smearing" for just the multiple scattering smearing 
+    
 
     double Reuse_mat=1.0;
-    double Reuse_mat_cycle=0.0;
-    int    ncycles=1;
+    double Reuse_mat_cycle=0.5;
+    int    ncycles=2;
                                             //or "addMS_Smearing_Corr" to also have the correction   
     double xy_smear = 0.3;                //smear due to plane precision                                    
     double Ry = TMath::Sq(0.3);           //R matrix of Kalman Filter
@@ -116,7 +120,11 @@ void trackmatch_pgun(size_t start_entry, size_t n_entries)
     int printlevelHelix = 0;
 
     //////Quantities to be stored
-    TFile fs("./MCgarlite/6planes/muon_test_ana_kalman.root","recreate");
+    string path = "/home/federico/Documents/Universita/Federico_2020-2021/OxfordCode/Kalman_Garlite/MCgarlite/6planes/";
+
+    string totalname = path+filename+"/"+filename+".root";
+    const char* c = const_cast<char*>(totalname.c_str());
+    TFile fs(c,"recreate");
     TTree t1s("t1s","helix simple tree");
 
     //////////////////////////////////Read from MC and gar reco
@@ -363,9 +371,11 @@ void trackmatch_pgun(size_t start_entry, size_t n_entries)
         double forward=1.;
         double backwards=-1.;
         double lambda_seed,phi_seed;
+        
         std::cout<<"Entry: "<<i;
         if(naive_direction==0)std::cout<<" backwards"<<std::endl;
         if(naive_direction==1)std::cout<<" forward"<<std::endl;
+        
         
         
         ////Apply Alice Helix Fit
@@ -406,8 +416,7 @@ void trackmatch_pgun(size_t start_entry, size_t n_entries)
             tanlambda_seed=TMath::Tan(tanlambda_seed);
             sinphi_seed=TMath::Sin(sinphi_seed);
             if (Helix_Corr == "Eloss_MS" || Helix_Corr == "Eloss") {
-              double crossLength = CalculatePath(xyz_plane,curvature_seed,tanlambda_seed,sinphi_seed);
-              crossLength=nCrossedPlanes*Plane_thick;
+              double crossLength=nCrossedPlanes*Plane_thick;
               SeedMaterialCorrection(crossLength*rho,muon_mass,0.05,sqrt(pxyz_seed.Mag2()),(sqrt(pxyz_seed.Mag2())/muon_mass),rho,X0,X1,Ipar,ZA,curvature_seed,tanlambda_seed,sinphi_seed,P_seed,+1, Helix_Corr,nCrossedPlanes*Plane_thick/xx0);
             }
             invpT_seed=curvature_seed/((0.3e-2)*B);
@@ -534,8 +543,8 @@ void trackmatch_pgun(size_t start_entry, size_t n_entries)
        {
         if((parvect_bkw[parvect_bkw.size()-1][4]-invpT_MC)/invpT_MC>1)
         {
-        std::cout<<"Seed     "<<xyz_seed.X()<<" "<<xyz_seed.Y()<<" "<<xyz_seed.Z()<<" "<<sinphi_seed<<" "<<tanlambda_seed<<" "<<invpT_seed<<std::endl;
-        std::cout<<"MC       "<<xyz_MC.X()<<" "<<xyz_MC.Y()<<" "<<xyz_MC.Z()<<" "<<sinphi_MC<<" "<<tanlambda_MC<<" "<<invpT_MC<<std::endl;
+        std::cout<<"Seed     "<<xyz_seed.X()<<" "<<xyz_seed.Y()<<" "<<xyz_seed.Z()<<" "<<sinphi_seed<<" "<<tanlambda_seed<<" "<<invpT_seed<<" "<<sqrt(pxyz_seed.Mag2())<< std::endl;
+        std::cout<<"MC       "<<xyz_MC.X()<<" "<<xyz_MC.Y()<<" "<<xyz_MC.Z()<<" "<<sinphi_MC<<" "<<tanlambda_MC<<" "<<invpT_MC<<" "<<sqrt(pxyz_MC.Mag2())<<std::endl;
         std::cout<<"Seed Old "<<xyz_seed_old.X()<<" "<<xyz_seed_old.Y()<<" "<<xyz_seed_old.Z()<<" "<<sinphi_seed_old<<" "<<tanlambda_seed_old<<" "<<invpT_seed_old<<std::endl;
         if(status==1) std::cout<<"Kalman   "<<xyz_plane_bkw[xyz_plane_bkw.size()-1].X()<<" "<<xyz_plane_bkw[xyz_plane_bkw.size()-1].Y()<<" "<<xyz_plane_bkw[xyz_plane_bkw.size()-1].Z()<<" "<<parvect_bkw[parvect_bkw.size()-1][2]<<" "<<parvect_bkw[parvect_bkw.size()-1][3]<<" "<<parvect_bkw[parvect_bkw.size()-1][4]<<std::endl;
         }
@@ -546,7 +555,7 @@ void trackmatch_pgun(size_t start_entry, size_t n_entries)
        
        
         ////Fill The tree
-        if(status!=1)std::cout<<"status: "<<status<<std::endl;
+        if(status!=1)std::cout<<"status: "<<status<<" ev: "<<i<<std::endl;
         t1s.Fill();
         
        

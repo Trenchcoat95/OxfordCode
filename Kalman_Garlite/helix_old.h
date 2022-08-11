@@ -719,6 +719,8 @@ void CalculateCovariance(const std::vector<XYZVector>  TPCClusters,
   std::vector<XYZVector> xyz3points;
   XYZVector xyzpoint;
 
+  
+
   xyzpoint.SetXYZ(TPCClusters.at(firstTPCCluster).X(),
                        TPCClusters.at(firstTPCCluster).Y(),
                        TPCClusters.at(firstTPCCluster).Z());
@@ -755,7 +757,7 @@ void CalculateCovariance(const std::vector<XYZVector>  TPCClusters,
 
 
   /////
-  xyz3points[1].SetY(xyz3points[1].Y()+0.1*sxy);
+  xyz3points[1].SetY(xyz3points[1].Y()+sxy);
 
   Helix_Fit(xyz3points,xyzpoint,curvature_smear,lambda_smear,phi_smear,dir,printlevel);
 
@@ -763,39 +765,39 @@ void CalculateCovariance(const std::vector<XYZVector>  TPCClusters,
   Double_t f22=(phi_smear-phi_init)/sxy;
   Double_t f32=(lambda_smear-lambda_init)/sxy;
 
-  xyz3points[1].SetY(xyz3points[1].Y()-0.1*sxy);
+  xyz3points[1].SetY(xyz3points[1].Y()-sxy);
   //////
 
 
   /////
-  xyz3points[0].SetY(xyz3points[0].Y()+0.1*sxy);
+  xyz3points[0].SetY(xyz3points[0].Y()+sxy);
 
   Helix_Fit(xyz3points,xyzpoint,curvature_smear,lambda_smear,phi_smear,dir,printlevel);
 
   Double_t f43=(curvature_smear-curvature_init)/sxy;
   Double_t f20=(phi_smear-phi_init)/sxy;
 
-  xyz3points[0].SetY(xyz3points[0].Y()-0.1*sxy);
+  xyz3points[0].SetY(xyz3points[0].Y()-sxy);
   //////
 
   /////
-  xyz3points[2].SetX(xyz3points[2].X()+0.1*sxy);
+  xyz3points[2].SetX(xyz3points[2].X()+sxy);
 
   Helix_Fit(xyz3points,xyzpoint,curvature_smear,lambda_smear,phi_smear,dir,printlevel);
 
   Double_t f31=(lambda_smear-lambda_init)/sxy;
 
-  xyz3points[2].SetY(xyz3points[2].X()-0.1*sxy);
+  xyz3points[2].SetY(xyz3points[2].X()-sxy);
   //////
 
   /////
-  xyz3points[1].SetX(xyz3points[1].X()+0.1*sxy);
+  xyz3points[1].SetX(xyz3points[1].X()+sxy);
 
   Helix_Fit(xyz3points,xyzpoint,curvature_smear,lambda_smear,phi_smear,dir,printlevel);
 
   Double_t f34=(lambda_smear-lambda_init)/sxy;
 
-  xyz3points[1].SetY(xyz3points[1].X()-0.1*sxy);
+  xyz3points[1].SetY(xyz3points[1].X()-sxy);
   //////
 
 
@@ -806,8 +808,8 @@ void CalculateCovariance(const std::vector<XYZVector>  TPCClusters,
   P[3][3]=f30*sxy2*f30+f31*sxy2*f31+f32*sxy2*f32+f34*sxy2*f34; 
   P[4][4]=f40*sxy2*f40+f42*sxy2*f42+f43*sxy2*f43;
 
-  P[2][2]=sin(sqrt(P[2][2]))*sin(sqrt(P[2][2]));
-  P[3][3]=tan(sqrt(P[3][3]))*tan(sqrt(P[3][3]));
+  P[2][2]*=cos(phi_init)*cos(phi_init);//=sin(sqrt(P[2][2]))*sin(sqrt(P[2][2]));
+  P[3][3]/=cos(lambda_init)*cos(lambda_init);//=tan(sqrt(P[3][3]))*tan(sqrt(P[3][3]));
   P[4][4]/=(0.5*0.3e-2)*(0.5*0.3e-2); // transform to 1/pt
   //P[4][4]*=0.2*0.2;
   
