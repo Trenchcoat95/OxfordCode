@@ -1,0 +1,24 @@
+hadd Target file: MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd compression setting for all output: 1
+hadd Source file 1: beamE_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 2: dalphat_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 3: dphit_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 4: dpt_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 5: event_recoilM_full_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 6: event_recoilM_zoom_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 7: event_recoilP_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 8: IApN_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 9: muonmomentum_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 10: muontheta_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 11: protonmomentum_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 12: protontheta_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 13: Q2_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 14: recoilM_full_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 15: recoilM_zoom_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 16: recoilP_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 17: Wrest_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 18: Wtrue_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 19: xBj_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Source file 20: xrest_MINERvALEGiBUUGFS0PIa0t1nuArgon.root
+hadd Target path: MINERvALEGiBUUGFS0PIa0t1nuArgon.root:/
+hadd Target path: MINERvALEGiBUUGFS0PIa0t1nuArgon.root:/MINERvALEGiBUUGFS0PIa0t1nuArgon

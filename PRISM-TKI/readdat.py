@@ -43,10 +43,10 @@ for i in range(nbins-1):
 #for i in range(hnuebar.GetNbinsX()-1): hnuebar.SetBinContent(i+1,hnuebar.GetBinContent(i+1)/hnuebar.GetBinWidth(i+1))  
 #for i in range(hnumubar.GetNbinsX()-1): hnumubar.SetBinContent(i+1,hnumubar.GetBinContent(i+1)/hnumubar.GetBinWidth(i+1)) 
 
-hnumu.GetXaxis().SetRangeUser(0,4)
-hnue.GetXaxis().SetRangeUser(0,4)
-hnumubar.GetXaxis().SetRangeUser(0,4)
-hnuebar.GetXaxis().SetRangeUser(0,4)
+hnumu.GetXaxis().SetRangeUser(0,20)
+hnue.GetXaxis().SetRangeUser(0,20)
+hnumubar.GetXaxis().SetRangeUser(0,20)
+hnuebar.GetXaxis().SetRangeUser(0,20)
 
 cEnumu = ROOT.TCanvas("Enumu","Enumu",800,600)
 hnumu.SetTitle("#nu_{#mu} flux;E(GeV);")
@@ -119,10 +119,10 @@ for i in range(6):
     for i in range(histonumubaroff.GetNbinsX()-1): histonumubaroff.SetBinContent(i+1,histonumubaroff.GetBinContent(i+1)/histonumubaroff.GetBinWidth(i+1))  
     for i in range(histonuebaroff.GetNbinsX()-1): histonuebaroff.SetBinContent(i+1,histonuebaroff.GetBinContent(i+1)/histonuebaroff.GetBinWidth(i+1))  
 
-    histonumuoff.GetXaxis().SetRangeUser(0,4)
-    histonueoff.GetXaxis().SetRangeUser(0,4)
-    histonumubaroff.GetXaxis().SetRangeUser(0,4)
-    histonuebaroff.GetXaxis().SetRangeUser(0,4)
+    histonumuoff.GetXaxis().SetRangeUser(0,20)
+    histonueoff.GetXaxis().SetRangeUser(0,20)
+    histonumubaroff.GetXaxis().SetRangeUser(0,20)
+    histonuebaroff.GetXaxis().SetRangeUser(0,20)
 
     #histonumuoff.Rebin(nbins,"histonumuoff",array('d',edge))
     #histonueoff.Rebin(nbins,"histonueoff",array('d',edge))
