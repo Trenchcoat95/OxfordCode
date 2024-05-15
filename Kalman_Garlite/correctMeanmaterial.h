@@ -119,7 +119,7 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Float_t stepFra
   if ((p/mass)<kBGStop) return kFALSE;
   Double_t p2=p*p;
   Double_t Ein=TMath::Sqrt(p2+mass2);
-  Double_t dP= dPdxEulerStep(p,mass,xTimesRho,stepFraction,bg,kp0,kp1,kp2,kp3,kp4);
+  Double_t dP= dPdxEulerStep(p,mass,xTimesRho,stepFraction,bg,kp0,kp1,kp2,kp3,kp4)*dir;
   if (dP==0) return kFALSE;
   Double_t pOut=p+dP;
   //if(dir<0) std::cout<<"dir:"<<dir<<" dP:"<<dP<<std::endl;
@@ -175,6 +175,7 @@ Bool_t CorrectForMeanMaterial(Double_t xTimesRho, Double_t mass, Float_t stepFra
   P[2][2] += cC22;
   P[3][3] += cC33;
   P[4][3] += cC43;
+  P[3][4] += cC43;
   P[4][4] += cC44;
   parvec[4]  *= cP4;
   //std::cout<<"dir="<<dir<<" cP4="<<cP4<<" cC44= "<<cC44<<std::endl;
@@ -439,16 +440,25 @@ Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVe
           //F*C*Ft = C + (b + bt + a)
           PPred[0][0] += b00 + b00 + a00;
           PPred[1][0] += b10 + b01 + a01; 
+          PPred[0][1] += b10 + b01 + a01;
           PPred[2][0] += b20 + b02 + a02;
+          PPred[0][2] += b20 + b02 + a02;
           PPred[3][0] += b30;
+          PPred[0][3] += b30;
           PPred[4][0] += b40;
+          PPred[0][4] += b40;
           PPred[1][1] += b11 + b11 + a11;
           PPred[2][1] += b21 + b12 + a12;
-          PPred[3][1] += b31; 
+          PPred[1][2] += b21 + b12 + a12;
+          PPred[3][1] += b31;
+          PPred[1][3] += b31; 
           PPred[4][1] += b41;
+          PPred[1][4] += b41;
           PPred[2][2] += b22 + b22 + a22;
           PPred[3][2] += b32;
+          PPred[2][3] += b32;
           PPred[4][2] += b42;
+          PPred[2][4] += b42;
 
           
             float tanPhi2 = predstep[2]*predstep[2];
@@ -469,7 +479,7 @@ Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVe
           if(InPlane && Energy_loss && CorrTime!="after") 
           {
           //std::cout<<"deltaxyz Kalman:"<<deltaxyz<<std::endl;
-          Bool_t checkstatus= CorrectForMeanMaterial(-deltaxyz*rho,muon_mass,0.0005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,predstep,PPred,dErec,dir,MS,deltaxyz/xx0);
+          Bool_t checkstatus= CorrectForMeanMaterial(-dir*deltaxyz*rho,muon_mass,0.0005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,predstep,PPred,dErec,dir,MS,deltaxyz/xx0);
           if (fPrintLevel >0 )
           {
               std::cout << " Predstep: y " << predstep[0] << " x " << predstep[1] << " sinphi " << predstep[2] << " tanlambda " << predstep[3] << " 1/pT " << predstep[4] << std::endl;

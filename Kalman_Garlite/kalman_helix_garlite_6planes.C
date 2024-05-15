@@ -25,29 +25,29 @@ using namespace utils;
 void kalman_helix_garlite_6planes(size_t nevents)
 
     {
-      TFile fs("./toygarlite/6planes/smearx05y05_aliceseed_elossgaussnocorr_MSnocorr_fixedp0.7/garlitetest_smearx05y05_aliceseed_elossgaussnocorr_MSnocorr_r05_05_fixedp0.7.root","recreate");
+      TFile fs("./toygarlite/6planes/smearx05y05_aliceseed_elosscorr_MScorr_HelixMSEloss_p_0.1_4/garlitetest_smearx05y05_aliceseed_elosscorr_MScorr_HelixMSEloss_r05_05_p_0.1_4.root","recreate");
       TTree t1s("t1s","helix simple tree");
 
       ///Parameters regulating simulation
 
       
       std::string Seedtype = "alice";       //perfect, real or alice
-      std::string Helix_Corr = "";          //"Eloss" or "Eloss_MS"
-      std::string Energy_Smear = "gauss";        //gauss or landau
+      std::string Helix_Corr = "Eloss_MS";          //"Eloss" or "Eloss_MS"
+      std::string Energy_Smear = "";        //gauss or landau
       std::string CorrTime = "";            //select if apply energy loss correction before or after a posteriori step. 
                                             //Either "after" or anything else for "before"
 
       Bool_t Backward_separate = false;     // apply Kalman filter backwards reusing the Helix fit and not the final point in the forward Kalman
       Bool_t Fixed_Cov = true;              // apply Kalman filter backwards using fixed guess values for the covariance matrix
-      Bool_t Energy_loss_corr = false;
+      Bool_t Energy_loss_corr = true;
       Bool_t Energy_loss = true;
       Bool_t Smear = true;
       Bool_t Seed_only = false;
-      std::string MS = "addMS_Smearing";    //use "addMS_Smearing" for just the multiple scattering smearing 
+      std::string MS = "addMS_Smearing_Corr";    //use "addMS_Smearing" for just the multiple scattering smearing 
                                             //or "addMS_Smearing_Corr" to also have the correction
 
       double xy_smear = 0.5;                //smear due to plane precision
-      double  fixedp = 0.7;                 //GeV/c Set to 0 or negative value if you don't want it fixed
+      double  fixedp = -1;                 //GeV/c Set to 0 or negative value if you don't want it fixed
       ////Kalman
       double Ry = TMath::Sq(0.5);           //R matrix of Kalman Filter
       double Rx = TMath::Sq(0.5); 
@@ -598,12 +598,12 @@ void kalman_helix_garlite_6planes(size_t nevents)
                 else makeSeed(xyz_plane_bkw,xyz_seed_bkw,curvature_seed_bkw,tanlambda_seed_bkw,sinphi_seed_bkw,backwards,printlevelHelix,P_seed_bkw,xy_smear,Helix_Corr,nCrossedPlanes); 
               }
 
-            xyz_seed_bkw.SetX(parvect.at(parvect.size()-1)[1]);
-            xyz_seed_bkw.SetY(parvect.at(parvect.size()-1)[0]);
-            xyz_seed_bkw.SetZ(xyz_plane.at(xyz_plane.size()-1).Z());
-            curvature_seed_bkw=parvect.at(parvect.size()-1)[4]*(0.5*0.299792458e-2);
-            sinphi_seed_bkw=parvect.at(parvect.size()-1)[2];
-            tanlambda_seed_bkw=parvect.at(parvect.size()-1)[3];
+            // xyz_seed_bkw.SetX(parvect.at(parvect.size()-1)[1]);
+            // xyz_seed_bkw.SetY(parvect.at(parvect.size()-1)[0]);
+            // xyz_seed_bkw.SetZ(xyz_plane.at(xyz_plane.size()-1).Z());
+            // curvature_seed_bkw=parvect.at(parvect.size()-1)[4]*(0.5*0.299792458e-2)*(-1);
+            // sinphi_seed_bkw=parvect.at(parvect.size()-1)[2];
+            // tanlambda_seed_bkw=parvect.at(parvect.size()-1)[3];
            
             std::vector<double> invpT_plane_bkw;
             invpT_plane_bkw=invpT_plane;

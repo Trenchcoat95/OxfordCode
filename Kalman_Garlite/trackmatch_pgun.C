@@ -90,7 +90,7 @@ void trackmatch_pgun(size_t start_entry, size_t n_entries)
     std::cout << std::setprecision(10);
 
     /////Kalman parameters
-    string filename = "MC1GeV_realseed_Eloss_MS_kalman_Eloss_MS_repeatMatrix";
+    string filename = "MC1GeV_realseed_Eloss_MS_kalman_Eloss_MS";
 
     std::string Seedtype = "real";       //perfect, real or alice
     std::string Helix_Corr = "Eloss_MS";          //"Eloss" or "Eloss_MS"
@@ -109,7 +109,7 @@ void trackmatch_pgun(size_t start_entry, size_t n_entries)
 
     double Reuse_mat=1.0;
     double Reuse_mat_cycle=0.5;
-    int    ncycles=2;
+    int    ncycles=1;
                                             //or "addMS_Smearing_Corr" to also have the correction   
     double xy_smear = 0.3;                //smear due to plane precision                                    
     double Ry = TMath::Sq(0.3);           //R matrix of Kalman Filter

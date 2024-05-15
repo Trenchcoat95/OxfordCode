@@ -443,7 +443,7 @@ void KalmanFit(
           {
           //std::cout<<"deltaxyz Kalman:"<<deltaxyz<<std::endl;
           double p = sqrt(pow(parvec[3]/parvec[4],2)+pow(1/parvec[4],2));
-          Bool_t checkstatus= CorrectForMeanMaterial(-dxyzrecord*rho,muon_mass,0.005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,parvec,PPred,dErecord,dir, MS,dxyzrecord/xx0);
+          Bool_t checkstatus= CorrectForMeanMaterial(dxyzrecord*rho,muon_mass,0.005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,parvec,PPred,dErecord,dir, MS,dxyzrecord/xx0);
           //std::cout<<"I'm correcting"<<std::endl;
           if (!checkstatus)
                     { 
