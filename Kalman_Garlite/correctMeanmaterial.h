@@ -479,6 +479,7 @@ Bool_t Propagate(double dz, TMatrixD &PPred, TMatrix P, TVectorD & predstep, TVe
           if(InPlane && Energy_loss && CorrTime!="after") 
           {
           //std::cout<<"deltaxyz Kalman:"<<deltaxyz<<std::endl;
+          // For realistic MC Bool_t checkstatus= CorrectForMeanMaterial(-dir*deltaxyz*rho,muon_mass,0.0005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,predstep,PPred,dErec,dir,MS,4*deltaxyz/xx0);
           Bool_t checkstatus= CorrectForMeanMaterial(-dir*deltaxyz*rho,muon_mass,0.0005,p,(p/muon_mass),rho,X0,X1,Ipar,ZA,predstep,PPred,dErec,dir,MS,deltaxyz/xx0);
           if (fPrintLevel >0 )
           {

@@ -25,7 +25,7 @@ using namespace utils;
 void kalman_helix_garlite_6planes(size_t nevents)
 
     {
-      TFile fs("./toygarlite/6planes/smearx05y05_aliceseed_elosscorr_MScorr_HelixMSEloss_p_0.1_4/garlitetest_smearx05y05_aliceseed_elosscorr_MScorr_HelixMSEloss_r05_05_p_0.1_4.root","recreate");
+      TFile fs("./toygarlite/6planes/smearx03y03_aliceseed_elosscorr_MScorr_HelixMSEloss_p_0.1_4/garlitetest_smearx03y03_aliceseed_elosscorr_MScorr_HelixMSEloss_r03_03_p_0.1_4.root","recreate");
       TTree t1s("t1s","helix simple tree");
 
       ///Parameters regulating simulation
@@ -46,11 +46,11 @@ void kalman_helix_garlite_6planes(size_t nevents)
       std::string MS = "addMS_Smearing_Corr";    //use "addMS_Smearing" for just the multiple scattering smearing 
                                             //or "addMS_Smearing_Corr" to also have the correction
 
-      double xy_smear = 0.5;                //smear due to plane precision
+      double xy_smear = 0.3;                //smear due to plane precision
       double  fixedp = -1;                 //GeV/c Set to 0 or negative value if you don't want it fixed
       ////Kalman
-      double Ry = TMath::Sq(0.5);           //R matrix of Kalman Filter
-      double Rx = TMath::Sq(0.5); 
+      double Ry = TMath::Sq(0.3);           //R matrix of Kalman Filter
+      double Rx = TMath::Sq(0.3); 
       double Ryx = TMath::Sq(0);
 
       
@@ -473,7 +473,8 @@ void kalman_helix_garlite_6planes(size_t nevents)
         if(!xyzplanecontainer[p].empty()) 
         {
         if(xyzplanecontainer[p].size()>1) {
-          hitsinplane=2+gRandom->Rndm()*(xyzplanecontainer[p].size()-1);
+          int upperlimit = (xyzplanecontainer[p].size()-1)<3? (xyzplanecontainer[p].size()-1) : 3;
+          hitsinplane=1+gRandom->Rndm()*(upperlimit);
         }
         else hitsinplane=xyzplanecontainer[p].size();
         nHits_perPlane.push_back(hitsinplane);

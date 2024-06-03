@@ -90,9 +90,9 @@ void trackmatch_pgun(size_t start_entry, size_t n_entries)
     std::cout << std::setprecision(10);
 
     /////Kalman parameters
-    string filename = "MC1GeV_realseed_Eloss_MS_kalman_Eloss_MS";
+    string filename = "MC1GeV_aliceseed_Eloss_MS_kalman_Eloss_MS";
 
-    std::string Seedtype = "real";       //perfect, real or alice
+    std::string Seedtype = "alice";       //perfect, real or alice
     std::string Helix_Corr = "Eloss_MS";          //"Eloss" or "Eloss_MS"
     Bool_t Energy_loss_corr = true;
     std::string MS = "addMS_Smearing_Corr";    //use "addMS_Smearing_Corr" for for the MS correction  

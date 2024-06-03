@@ -904,7 +904,7 @@ def Draw3HistosRes(tree,Y,X,xrange,yrange,Xname,extracond,cc,lg,yrangeuser,which
     hpkGAr13_sigma.Draw("E1 same")
     hpkGAr211_sigma.Draw("E1 same")
 
-def Draw2HistosRes_fromhisto(h1,h2,xrange,yrange,Xname,cc,lg,lg1_txt,lg2_txt,yrangeuser,whichfit=2):
+def Draw2HistosRes_fromhisto(h1,h2,h1name,h2name,Xname,cc,lg,lg1_txt,lg2_txt,yrangeuser,whichfit=2):
 
     paramname = ""
     if(whichfit==2): paramname = "(a)"
@@ -920,10 +920,10 @@ def Draw2HistosRes_fromhisto(h1,h2,xrange,yrange,Xname,cc,lg,lg1_txt,lg2_txt,yra
 
 
     h1.FitSlicesY()
-    h1_sigma = ROOT.gDirectory.Get("h1_"+paramnumber)
+    h1_sigma = ROOT.gDirectory.Get(h1name+"_"+paramnumber)
 
     h2.FitSlicesY()
-    h2_sigma = ROOT.gDirectory.Get("h2_"+paramnumber)
+    h2_sigma = ROOT.gDirectory.Get(h2name+"_"+paramnumber)
 
 
     SetHisto(h1_sigma,";"+Xname+" ;"+paramsymbol,ROOT.kBlack,20,yrangeuser)
@@ -931,12 +931,56 @@ def Draw2HistosRes_fromhisto(h1,h2,xrange,yrange,Xname,cc,lg,lg1_txt,lg2_txt,yra
 
     SetLegend(lg)
     lg.SetHeader(paramname)
-    lg.AddEntry(hpkGAr_sigma, lg1_txt, "pl")
-    lg.AddEntry(hpkGAr13_sigma, lg2_txt, "pl")
+    lg.AddEntry(h1_sigma, lg1_txt, "pl")
+    lg.AddEntry(h2_sigma, lg2_txt, "pl")
 
     SetCanvas(cc)
     h1_sigma.Draw("E1")
     h2_sigma.Draw("E1 same")
+
+def Draw3HistosRes_fromhisto(h1,h2,h3,h1name,h2name,h3name,Xname,cc,lg,lg1_txt,lg2_txt,lg3_txt,yrangeuser,whichfit=2):
+
+    paramname = ""
+    if(whichfit==2): paramname = "(a)"
+    else: paramname = "(b)"
+
+    paramsymbol = ""
+    if(whichfit==2): paramsymbol= "#it{#sigma} ( #it{p}_{reco}/#it{p}_{true} -1 )"
+    else: paramsymbol= "#it{#mu} ( #it{p}_{reco}/#it{p}_{true} -1 )"
+
+    paramnumber = ""
+    if(whichfit==2): paramnumber = "2"
+    else: paramnumber = "1"
+
+
+    h1.FitSlicesY()
+    h1_sigma = ROOT.gDirectory.Get(h1name+"_"+paramnumber)
+
+    h2.FitSlicesY()
+    h2_sigma = ROOT.gDirectory.Get(h2name+"_"+paramnumber)
+
+    h3.FitSlicesY()
+    h3_sigma = ROOT.gDirectory.Get(h3name+"_"+paramnumber)
+
+
+    SetHisto(h1_sigma,";"+Xname+" ;"+paramsymbol,ROOT.kBlack,20,yrangeuser)
+    SetHisto(h2_sigma,";"+Xname+" "+paramsymbol,ROOT.kBlue,26,yrangeuser)
+    SetHisto(h3_sigma,";"+Xname+" "+paramsymbol,ROOT.kRed,32,yrangeuser)
+
+    h1_sigma.GetYaxis().SetMaxDigits()
+    h2_sigma.GetYaxis().SetLabelFont(42)
+    h3_sigma.GetYaxis().SetLabelFont(42)
+
+    SetLegend(lg)
+    lg.SetHeader(paramname)
+    lg.AddEntry(h1_sigma, lg1_txt, "pl")
+    lg.AddEntry(h2_sigma, lg2_txt, "pl")
+    lg.AddEntry(h3_sigma, lg3_txt, "pl")
+
+    SetCanvas(cc)
+    h1_sigma.Draw("E1")
+    h2_sigma.Draw("E1 same")
+    h3_sigma.Draw("E1 same")    
 
 
 
