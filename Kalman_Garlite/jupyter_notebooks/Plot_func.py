@@ -904,11 +904,11 @@ def Draw3HistosRes(tree,Y,X,xrange,yrange,Xname,extracond,cc,lg,yrangeuser,which
     hpkGAr13_sigma.Draw("E1 same")
     hpkGAr211_sigma.Draw("E1 same")
 
-def Draw2HistosRes_fromhisto(h1,h2,h1name,h2name,Xname,cc,lg,lg1_txt,lg2_txt,yrangeuser,whichfit=2):
+def Draw2HistosRes_fromhisto(h1,h2,h1name,h2name,Xname,cc,lg,lg1_txt,lg2_txt,yrangeuser,whichfit=2,paramname="a"):
 
-    paramname = ""
-    if(whichfit==2): paramname = "(a)"
-    else: paramname = "(b)"
+    # paramname = ""
+    # if(whichfit==2): paramname = "(a)"
+    # else: paramname = "(b)"
 
     paramsymbol = ""
     if(whichfit==2): paramsymbol= "#it{#sigma} ( #it{p}_{reco}/#it{p}_{true} -1 )"
